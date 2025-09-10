@@ -75,7 +75,9 @@ export default function LoginPage() {
             <FormError message={localError || error} />
             <Button type="submit" loading={loading} className="w-full rounded-md h-[44px] text-[14px]">Sign In</Button>
           </form>
-          <p className="mt-8 text-center text-[11px] text-gray-500">© 2025 ISA Manual Builder. All rights reserved.</p>
+          <p className="mt-8 text-center text-[11px] text-gray-500">
+            © {new Date().getFullYear()} ISA Manual Builder. All rights reserved.
+          </p>
         </div>
       </div>
     </div>

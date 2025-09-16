@@ -17,6 +17,8 @@ class TimestampedModel(models.Model):
 class Category(TimestampedModel):
     name = models.CharField(max_length=200, unique=True)
     slug = models.SlugField(max_length=220, unique=True)
+    description = models.TextField(blank=True)
+    color = models.CharField(max_length=20, default='blue')
 
     class Meta:
         ordering = ["name"]
@@ -28,6 +30,7 @@ class Category(TimestampedModel):
 class Tag(TimestampedModel):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=120, unique=True)
+    color = models.CharField(max_length=20, default='blue')
 
     class Meta:
         ordering = ["name"]

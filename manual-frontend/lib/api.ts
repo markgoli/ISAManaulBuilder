@@ -90,10 +90,11 @@ export type ManualStatus = 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'PUBLISHED' | 'R
 export type Manual = {
   id: number;
   title: string;
-  description?: string;
   slug: string;
   department: string;
   status: ManualStatus;
+  created_by: number;
+  current_version?: number;
   created_at: string;
   updated_at: string;
 };
@@ -102,7 +103,7 @@ export async function listManuals(): Promise<Manual[]> {
   return apiFetch<Manual[]>('/api/manuals/');
 }
 
-export async function createManual(payload: { title: string; description?: string; department?: string }): Promise<Manual> {
+export async function createManual(payload: { title: string; slug: string; department?: string }): Promise<Manual> {
   await ensureCsrf();
   return apiFetch<Manual>('/api/manuals/', { method: 'POST', body: JSON.stringify(payload) });
 }
@@ -144,6 +145,7 @@ export async function rollbackManual(id: number, versionNumber: number): Promise
 export type Category = {
   id: number;
   name: string;
+  slug: string;
   description: string;
   color: string;
   created_at: string;
@@ -154,7 +156,7 @@ export async function listCategories(): Promise<Category[]> {
   return apiFetch<Category[]>('/api/categories/');
 }
 
-export async function createCategory(payload: { name: string; description?: string; color?: string }): Promise<Category> {
+export async function createCategory(payload: { name: string; slug: string; description?: string; color?: string }): Promise<Category> {
   await ensureCsrf();
   return apiFetch<Category>('/api/categories/', { method: 'POST', body: JSON.stringify(payload) });
 }
@@ -173,6 +175,7 @@ export async function deleteCategory(id: number): Promise<void> {
 export type Tag = {
   id: number;
   name: string;
+  slug: string;
   color: string;
   created_at: string;
   updated_at: string;
@@ -182,7 +185,7 @@ export async function listTags(): Promise<Tag[]> {
   return apiFetch<Tag[]>('/api/tags/');
 }
 
-export async function createTag(payload: { name: string; color?: string }): Promise<Tag> {
+export async function createTag(payload: { name: string; slug: string; color?: string }): Promise<Tag> {
   await ensureCsrf();
   return apiFetch<Tag>('/api/tags/', { method: 'POST', body: JSON.stringify(payload) });
 }
@@ -218,7 +221,7 @@ export async function getVersion(id: number): Promise<ManualVersion> {
   return apiFetch<ManualVersion>(`/api/versions/${id}/`);
 }
 
-export async function createVersion(payload: { manual: number; content?: string }): Promise<ManualVersion> {
+export async function createVersion(payload: { manual: number; changelog?: string }): Promise<ManualVersion> {
   await ensureCsrf();
   return apiFetch<ManualVersion>('/api/versions/', { method: 'POST', body: JSON.stringify(payload) });
 }
@@ -230,15 +233,17 @@ export async function previewVersion(id: number): Promise<ManualVersion> {
 // Content Blocks
 export type ContentBlockType = 'TEXT' | 'IMAGE' | 'VIDEO' | 'TABLE' | 'LIST' | 'CODE' | 'QUOTE' | 'DIVIDER';
 
+// Content Blocks
 export type ContentBlock = {
   id: number;
   version: number;
-  type: ContentBlockType;
-  content: any;
   order: number;
+  type: ContentBlockType;
+  data: any;
   created_at: string;
   updated_at: string;
 };
+
 
 export async function listContentBlocks(): Promise<ContentBlock[]> {
   return apiFetch<ContentBlock[]>('/api/blocks/');
@@ -247,7 +252,7 @@ export async function listContentBlocks(): Promise<ContentBlock[]> {
 export async function createContentBlock(payload: { 
   version: number; 
   type: ContentBlockType; 
-  content: any; 
+  data: any; 
   order: number 
 }): Promise<ContentBlock> {
   await ensureCsrf();

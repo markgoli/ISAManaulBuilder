@@ -14,13 +14,15 @@ from .models import (
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ["id", "name", "slug", "created_at", "updated_at"]
+        fields = ["id", "name", "slug", "description", "color", "created_at", "updated_at"]
+        read_only_fields = ["created_at", "updated_at"]
 
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ["id", "name", "slug", "created_at", "updated_at"]
+        fields = ["id", "name", "slug", "color", "created_at", "updated_at"]
+        read_only_fields = ["created_at", "updated_at"]
 
 
 class ContentBlockSerializer(serializers.ModelSerializer):
@@ -54,11 +56,11 @@ class ManualVersionSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["is_published", "published_html"]
+        read_only_fields = ["created_by", "version_number", "is_published", "published_html", "created_at", "updated_at"]
 
 
 class ManualSerializer(serializers.ModelSerializer):
-    current_version = ManualVersionSerializer(read_only=True)
+    current_version = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Manual
@@ -75,6 +77,7 @@ class ManualSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+        read_only_fields = ["created_by", "current_version", "created_at", "updated_at"]
 
 
 class ReviewRequestSerializer(serializers.ModelSerializer):

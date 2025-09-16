@@ -27,7 +27,8 @@ export default function ManualsPage() {
   const [newManual, setNewManual] = useState({
     title: "",
     description: "",
-    department: ""
+    department: "",
+    slug: ""
   });
   const [creating, setCreating] = useState(false);
 
@@ -39,10 +40,12 @@ export default function ManualsPage() {
     try {
       setLoading(true);
       const data = await listManuals();
+      console.log("Manuals loaded:", data);
+      console.log("Number of manuals:", data.length);
       setManuals(data);
     } catch (err) {
       setError("Failed to fetch manuals");
-      console.error(err);
+      console.error("Error loading manuals:", err);
     } finally {
       setLoading(false);
     }
@@ -52,8 +55,12 @@ export default function ManualsPage() {
     e.preventDefault();
     try {
       setCreating(true);
-      await createManual(newManual);
-      setNewManual({ title: "", description: "", department: "" });
+      await createManual({
+        title: newManual.title,
+        slug: generateSlug(newManual.title),
+        department: newManual.department,
+      });
+      setNewManual({ title: "", description: "", department: "", slug: "" });
       setShowCreateModal(false);
       fetchManuals();
     } catch (err) {
@@ -64,9 +71,18 @@ export default function ManualsPage() {
     }
   };
 
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  };
+
   const filteredManuals = manuals.filter(manual => {
-    const matchesSearch = manual.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (manual.description && manual.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesSearch = manual.title.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || manual.status === statusFilter;
     const matchesDepartment = departmentFilter === "all" || manual.department === departmentFilter;
     
@@ -160,7 +176,7 @@ export default function ManualsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 text-sm mb-4">{manual.description || 'No description'}</p>
+              <p className="text-gray-600 text-sm mb-4">Manual #{manual.id} • {manual.department || 'General'}</p>
               <div className="space-y-2 text-sm text-gray-500 mb-4">
                 <div className="flex justify-between">
                   <span>Department:</span>
@@ -172,12 +188,24 @@ export default function ManualsPage() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button className="flex-1 text-sm">Edit</Button>
-                {manual.status === 'DRAFT' && (
-                  <Button className="flex-1 text-sm bg-blue-600 hover:bg-blue-700">Submit</Button>
+                <Button 
+                  onClick={() => window.location.href = `/manuals/${manual.id}`}
+                  className="flex-1 text-sm bg-blue-600 hover:bg-blue-700"
+                >
+                  View
+                </Button>
+                {user && (manual.created_by === user.id || user.role === 'ADMIN' || user.role === 'REVIEWER') && (
+                  <Button 
+                    onClick={() => window.location.href = `/manuals/${manual.id}/edit`}
+                    className="flex-1 text-sm bg-green-600 hover:bg-green-700"
+                  >
+                    Edit
+                  </Button>
                 )}
-                {manual.status === 'PUBLISHED' && (
-                  <Button className="flex-1 text-sm bg-green-600 hover:bg-green-700">View</Button>
+                {manual.status === 'DRAFT' && user && manual.created_by === user.id && (
+                  <Button className="flex-1 text-sm bg-orange-600 hover:bg-orange-700">
+                    Submit for Review
+                  </Button>
                 )}
               </div>
             </CardContent>

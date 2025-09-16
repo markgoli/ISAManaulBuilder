@@ -2,9 +2,9 @@
 
 import React from 'react';
 
-type Props = React.InputHTMLAttributes<HTMLInputElement> & { label?: string };
+type Props = React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string };
 
-export default function Input({ label, className = '', ...props }: Props) {
+export default function TextArea({ label, className = '', ...props }: Props) {
   return (
     <label className="flex flex-col gap-1 w-full">
       {label && (
@@ -12,7 +12,7 @@ export default function Input({ label, className = '', ...props }: Props) {
           {label}
         </span>
       )}
-      <input
+      <textarea
         {...props}
         className={`
           border border-gray-300 rounded-md px-3 py-2 w-full
@@ -23,11 +23,10 @@ export default function Input({ label, className = '', ...props }: Props) {
           focus:ring-2 focus:ring-blue-500 focus:border-blue-500
           hover:border-gray-400
           disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed
+          resize-vertical
           ${className}
         `}
       />
     </label>
   );
 }
-
-

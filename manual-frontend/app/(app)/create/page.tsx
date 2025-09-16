@@ -1,32 +1,162 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../../context/AuthContext";
+import { createManual, getManual, createContentBlock, listCategories, listTags, ContentBlockType, Category, Tag } from "../../../lib/api";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/Card";
 import Select from "../../components/ui/Select";
+import BlockSelector from "../../components/manual-builder/BlockSelector";
+import DragDropContainer from "../../components/manual-builder/DragDropContainer";
+import { ContentBlockData } from "../../components/manual-builder/ContentBlock";
 
 export default function CreateManualPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+  
   const [manualData, setManualData] = useState({
     title: "",
     description: "",
     department: "",
     category: "",
     tags: "",
-    template: ""
   });
 
-  const [content, setContent] = useState("");
+  const [contentBlocks, setContentBlocks] = useState<ContentBlockData[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setSaving(false);
-    // Handle success
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  const loadInitialData = async () => {
+    try {
+      setLoading(true);
+      const [categoriesData, tagsData] = await Promise.all([
+        listCategories(),
+        listTags(),
+      ]);
+      setCategories(categoriesData);
+      setTags(tagsData);
+    } catch (err) {
+      setError("Failed to load initial data");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const generateBlockId = () => {
+    return `block_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+  };
+
+  const addContentBlock = (type: ContentBlockType) => {
+    const newBlock: ContentBlockData = {
+      id: generateBlockId(),
+      type,
+      content: getDefaultContent(type),
+      order: contentBlocks.length,
+    };
+    setContentBlocks([...contentBlocks, newBlock]);
+  };
+
+  const getDefaultContent = (type: ContentBlockType) => {
+    switch (type) {
+      case 'TEXT':
+        return { title: '', text: '' };
+      case 'IMAGE':
+        return { src: '', alt: '', caption: '' };
+      case 'LIST':
+        return { title: '', listType: 'bullet', items: [] };
+      case 'TABLE':
+        return { title: '', csvData: '' };
+      case 'VIDEO':
+        return { title: '', url: '' };
+      case 'CODE':
+        return { title: '', code: '', language: 'javascript' };
+      case 'QUOTE':
+        return { quote: '', author: '' };
+      case 'DIVIDER':
+        return {};
+      default:
+        return {};
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    if (!manualData.title.trim()) {
+      setError("Please enter a manual title");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+
+      // Create the manual (this automatically creates version 1)
+      const manual = await createManual({
+        title: manualData.title,
+        slug: generateSlug(manualData.title),
+        department: manualData.department,
+      });
+
+      // Get the manual with its current version (auto-created by backend)
+      const fullManual = await getManual(manual.id);
+      
+      if (fullManual.current_version) {
+        // Create content blocks for the existing version
+        for (const block of contentBlocks) {
+          await createContentBlock({
+            version: fullManual.current_version,
+            type: block.type,
+            data: block.content,
+            order: block.order,
+          });
+        }
+      }
+
+      // Redirect to manual view
+      router.push(`/manuals/${manual.id}`);
+    } catch (err: any) {
+      setError(err.message || "Failed to save manual");
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSubmitForReview = async () => {
+    // First save as draft, then submit for review
+    await handleSaveDraft();
+    // Additional logic for submitting for review would go here
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -37,14 +167,34 @@ export default function CreateManualPage() {
           <p className="text-gray-600 mt-1">Create a new documentation manual</p>
         </div>
         <div className="flex gap-3">
-          <Button className="bg-gray-500 hover:bg-gray-600 text-white">
+          <Button 
+            onClick={handleSaveDraft}
+            loading={saving}
+            className="bg-gray-500 hover:bg-gray-600 text-white"
+          >
             💾 Save Draft
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-            👁️ Preview
+          <Button 
+            onClick={handleSubmitForReview}
+            loading={saving}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            📤 Submit for Review
           </Button>
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+          <div className="flex">
+            <div className="text-red-400">⚠️</div>
+            <div className="ml-3">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
@@ -64,18 +214,6 @@ export default function CreateManualPage() {
                   required
                 />
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows={3}
-                    value={manualData.description}
-                    onChange={(e) => setManualData({ ...manualData, description: e.target.value })}
-                    placeholder="Brief description of the manual..."
-                  />
-                </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <Input
@@ -91,11 +229,11 @@ export default function CreateManualPage() {
                     label="Category"
                   >
                     <option value="">Select category...</option>
-                    <option value="process">Process Documentation</option>
-                    <option value="policy">Policy Manual</option>
-                    <option value="training">Training Material</option>
-                    <option value="technical">Technical Guide</option>
-                    <option value="sop">Standard Operating Procedure</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
                   </Select>
                 </div>
 
@@ -109,142 +247,101 @@ export default function CreateManualPage() {
             </CardContent>
           </Card>
 
-          {/* Content Editor */}
+          {/* Content Builder */}
           <Card>
             <CardHeader>
-              <CardTitle>Content</CardTitle>
+              <CardTitle>Content Builder</CardTitle>
+              <p className="text-sm text-gray-600">
+                Build your manual using drag-and-drop content blocks. Add blocks from the sidebar and arrange them as needed.
+              </p>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {/* Editor Toolbar */}
-                <div className="flex gap-2 p-2 bg-gray-50 rounded border">
-                  <button className="px-3 py-1 text-sm bg-white border rounded hover:bg-gray-50">
-                    <strong>B</strong>
-                  </button>
-                  <button className="px-3 py-1 text-sm bg-white border rounded hover:bg-gray-50">
-                    <em>I</em>
-                  </button>
-                  <button className="px-3 py-1 text-sm bg-white border rounded hover:bg-gray-50">
-                    <u>U</u>
-                  </button>
-                  <div className="border-l mx-2"></div>
-                  <button className="px-3 py-1 text-sm bg-white border rounded hover:bg-gray-50">
-                    📝 H1
-                  </button>
-                  <button className="px-3 py-1 text-sm bg-white border rounded hover:bg-gray-50">
-                    📝 H2
-                  </button>
-                  <div className="border-l mx-2"></div>
-                  <button className="px-3 py-1 text-sm bg-white border rounded hover:bg-gray-50">
-                    📋 List
-                  </button>
-                  <button className="px-3 py-1 text-sm bg-white border rounded hover:bg-gray-50">
-                    🔗 Link
-                  </button>
-                  <button className="px-3 py-1 text-sm bg-white border rounded hover:bg-gray-50">
-                    🖼️ Image
-                  </button>
-                </div>
-
-                {/* Text Editor */}
-                <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={20}
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Start writing your manual content here...
-
-You can use markdown syntax:
-# Heading 1
-## Heading 2
-**Bold text**
-*Italic text*
-- Bullet points
-1. Numbered lists
-[Link text](URL)
-"
-                />
-              </div>
+              <DragDropContainer
+                blocks={contentBlocks}
+                onUpdateBlocks={setContentBlocks}
+              />
             </CardContent>
           </Card>
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Templates */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Templates</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <button className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
-                  <div className="font-medium text-gray-900">Process Flow</div>
-                  <div className="text-sm text-gray-600">Step-by-step process documentation</div>
-                </button>
-                <button className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
-                  <div className="font-medium text-gray-900">Policy Document</div>
-                  <div className="text-sm text-gray-600">Company policy template</div>
-                </button>
-                <button className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
-                  <div className="font-medium text-gray-900">Training Guide</div>
-                  <div className="text-sm text-gray-600">Employee training material</div>
-                </button>
-                <button className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
-                  <div className="font-medium text-gray-900">SOP Template</div>
-                  <div className="text-sm text-gray-600">Standard operating procedure</div>
-                </button>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Content Blocks */}
           <Card>
             <CardHeader>
               <CardTitle>Content Blocks</CardTitle>
             </CardHeader>
             <CardContent>
+              <BlockSelector onAddBlock={addContentBlock} />
+            </CardContent>
+          </Card>
+
+          {/* Quick Templates */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Templates</CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="space-y-3">
-                <button className="w-full text-left p-3 bg-blue-50 rounded-lg hover:bg-blue-100 border border-blue-200">
-                  <div className="font-medium text-blue-900">📝 Text Block</div>
-                  <div className="text-sm text-blue-600">Add formatted text content</div>
+                <button 
+                  onClick={() => {
+                    addContentBlock('TEXT');
+                    addContentBlock('LIST');
+                    addContentBlock('TEXT');
+                  }}
+                  className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                >
+                  <div className="font-medium text-gray-900">📋 Process Flow</div>
+                  <div className="text-sm text-gray-600">Title + Steps + Description</div>
                 </button>
-                <button className="w-full text-left p-3 bg-green-50 rounded-lg hover:bg-green-100 border border-green-200">
-                  <div className="font-medium text-green-900">📊 Flowchart</div>
-                  <div className="text-sm text-green-600">Create process flowchart</div>
+                <button 
+                  onClick={() => {
+                    addContentBlock('TEXT');
+                    addContentBlock('QUOTE');
+                    addContentBlock('LIST');
+                  }}
+                  className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                >
+                  <div className="font-medium text-gray-900">📜 Policy Document</div>
+                  <div className="text-sm text-gray-600">Introduction + Quote + Rules</div>
                 </button>
-                <button className="w-full text-left p-3 bg-purple-50 rounded-lg hover:bg-purple-100 border border-purple-200">
-                  <div className="font-medium text-purple-900">📋 Checklist</div>
-                  <div className="text-sm text-purple-600">Add task checklist</div>
-                </button>
-                <button className="w-full text-left p-3 bg-orange-50 rounded-lg hover:bg-orange-100 border border-orange-200">
-                  <div className="font-medium text-orange-900">🖼️ Media</div>
-                  <div className="text-sm text-orange-600">Insert images or videos</div>
+                <button 
+                  onClick={() => {
+                    addContentBlock('TEXT');
+                    addContentBlock('IMAGE');
+                    addContentBlock('LIST');
+                    addContentBlock('VIDEO');
+                  }}
+                  className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                >
+                  <div className="font-medium text-gray-900">🎓 Training Guide</div>
+                  <div className="text-sm text-gray-600">Text + Image + Steps + Video</div>
                 </button>
               </div>
             </CardContent>
           </Card>
 
-          {/* Actions */}
+          {/* Manual Info */}
           <Card>
             <CardHeader>
-              <CardTitle>Actions</CardTitle>
+              <CardTitle>Manual Statistics</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <Button 
-                  onClick={handleSubmit}
-                  loading={saving}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                >
-                  💾 Save Draft
-                </Button>
-                <Button className="w-full bg-green-600 hover:bg-green-700">
-                  📤 Submit for Review
-                </Button>
-                <Button className="w-full bg-gray-500 hover:bg-gray-600">
-                  👁️ Preview Manual
-                </Button>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Content Blocks:</span>
+                  <span className="font-medium">{contentBlocks.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Estimated Reading:</span>
+                  <span className="font-medium">
+                    {Math.max(1, Math.ceil(contentBlocks.length * 0.5))} min
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  <span className="font-medium text-yellow-600">Draft</span>
+                </div>
               </div>
             </CardContent>
           </Card>

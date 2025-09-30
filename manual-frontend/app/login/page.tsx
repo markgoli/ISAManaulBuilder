@@ -44,7 +44,7 @@ export default function LoginPage() {
             <Image src="/logo/logo.png" alt="Company Logo" width={200} height={200} />
           </div>
           <div className="text-center">
-            <h2 className="text-[18px] font-medium">ISA Manual Builder</h2>
+            <h2 className="text-[18px] font-medium">Axora</h2>
             <p className="text-[12px] text-white/80">Sign in to continue</p>
           </div>
         </div>
@@ -76,7 +76,7 @@ export default function LoginPage() {
             <Button type="submit" loading={loading} className="w-full rounded-md h-[44px] text-[14px]">Sign In</Button>
           </form>
           <p className="mt-8 text-center text-[11px] text-gray-500">
-            © {new Date().getFullYear()} ISA Manual Builder. All rights reserved.
+            © {new Date().getFullYear()} Axora. All rights reserved.
           </p>
         </div>
       </div>

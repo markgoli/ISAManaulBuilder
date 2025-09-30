@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ISA Manaul Builder",
-  description: "ISA Manaul Builder",
+  title: "Axora",
+  description: "Axora",
 };
 
 export default function RootLayout({

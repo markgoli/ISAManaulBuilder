@@ -9,7 +9,7 @@ import Select from "../../components/ui/Select";
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
     // General Settings
-    siteName: "ISA Manual Builder",
+    siteName: "Axora",
     siteDescription: "Documentation Management System",
     defaultLanguage: "en",
     timezone: "UTC",

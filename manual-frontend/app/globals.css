@@ -1,21 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  /* DURALUX color palette */
-  --color-primary: #536dfe; /* primary blue */
-  --color-primary-dark: #4558d7;
-  --color-background: #f8f9fa;
-  --color-foreground: #212529;
-  --color-border: #dee2e6;
-  --color-muted: #6c757d;
+  /* Light, professional color palette */
+  --color-primary: #3b82f6; /* softer blue */
+  --color-primary-dark: #2563eb;
+  --color-background: #fafbfc;
+  --color-foreground: #64748b; /* much lighter text */
+  --color-border: #e2e8f0;
+  --color-muted: #94a3b8; /* lighter muted */
   --color-sidebar: #ffffff;
   --color-card: #ffffff;
-  --color-text-primary: #212529;
-  --color-text-secondary: #6c757d;
-  --color-orange: #fd7e14;
-  --color-green: #20c997;
-  --color-red: #dc3545;
-  --color-yellow: #ffc107;
+  --color-text-primary: #1d4ed8; /* blue primary text */
+  --color-text-secondary: #64748b; /* lighter secondary */
+  --color-text-muted: #94a3b8; /* very light muted text */
+  --color-text-subtle: #cbd5e1; /* ultra light text */
+  --color-orange: #f97316;
+  --color-green: #10b981;
+  --color-red: #ef4444;
+  --color-yellow: #f59e0b;
 }
 
 @theme inline {

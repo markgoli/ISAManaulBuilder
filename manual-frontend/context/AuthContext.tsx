@@ -60,6 +60,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await logoutApi();
       setUser(null);
+      setError(null);
+      // Redirect to login page after successful logout
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+    } catch (e: any) {
+      setError(e.message || 'Logout failed');
+      console.error('Logout error:', e);
     } finally {
       setLoading(false);
     }

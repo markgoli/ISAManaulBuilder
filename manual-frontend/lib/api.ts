@@ -31,7 +31,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
     let detail: any = undefined;
     try { detail = await res.json(); } catch {}
     const message = (detail && (detail.detail || detail.non_field_errors || JSON.stringify(detail))) || res.statusText;
-    throw new Error(typeof message === 'string' ? message : 'Request failed');
+    throw new Error(typeof message === 'string' ? message : 'Request failed - ' + message);
   }
   if (res.status === 204) return undefined as unknown as T;
   return res.json() as Promise<T>;
@@ -67,8 +67,16 @@ export async function loginApi(username: string, password: string): Promise<User
 }
 
 export async function logoutApi(): Promise<void> {
-  await ensureCsrf();
-  await apiFetch('/api/auth/logout/', { method: 'POST' });
+  try {
+    await ensureCsrf();
+    await apiFetch('/api/auth/logout/', { method: 'POST' });
+  } catch (error) {
+    // Even if the logout API call fails, we should still clear local state
+    console.warn('Logout API call failed, but continuing with local logout:', error);
+  }
+  
+  // Clear any cached session data (cookies are handled by the backend)
+  // Force a clean state regardless of API response
 }
 
 export function meApi(): Promise<User> {  

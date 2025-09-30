@@ -48,7 +48,7 @@ export default function Sidebar() {
     <aside className="h-full w-64 bg-white border-r border-gray-200">
       {/* Logo */}
       <div className="p-6 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-blue-600">ISA Manual Builder</h1>
+        <h1 className="text-xl font-bold text-blue-600">Axora</h1>
         <p className="text-xs text-gray-500 mt-1">Documentation Management</p>
       </div>
 

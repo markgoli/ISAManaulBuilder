@@ -106,12 +106,12 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Documentation Dashboard</h1>
+          <h1 className="text-2xl font-bold text-blue-700">Overview</h1>
           <p className="text-gray-600 mt-1">Manage your manuals and documentation workflow</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
+        {/* <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
           + Create Manual
-        </Button>
+        </Button> */}
       </div>
 
       {/* Stats Cards */}
@@ -121,7 +121,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Manuals</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-2xl font-bold text-blue-700">{stats.total}</p>
               </div>
               <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
                 <span className="text-blue-500 text-xl">📚</span>
@@ -135,7 +135,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Drafts</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.drafts}</p>
+                <p className="text-2xl font-bold text-blue-700">{stats.drafts}</p>
               </div>
               <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center">
                 <span className="text-orange-500 text-xl">✏️</span>
@@ -182,7 +182,7 @@ export default function DashboardPage() {
                 <span className="text-blue-600 text-xl">📝</span>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">Create New Manual</h3>
+                <h3 className="font-semibold text-blue-700">Create New Manual</h3>
                 <p className="text-sm text-gray-600">Start a new documentation manual</p>
               </div>
             </div>
@@ -196,7 +196,7 @@ export default function DashboardPage() {
                 <span className="text-green-600 text-xl">✅</span>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">Review Pending</h3>
+                <h3 className="font-semibold text-blue-700">Review Pending</h3>
                 <p className="text-sm text-gray-600">{stats.pending} manuals awaiting review</p>
               </div>
             </div>
@@ -210,7 +210,7 @@ export default function DashboardPage() {
                 <span className="text-purple-600 text-xl">📊</span>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">View Reports</h3>
+                <h3 className="font-semibold text-blue-700">View Reports</h3>
                 <p className="text-sm text-gray-600">Documentation analytics and insights</p>
               </div>
             </div>
@@ -230,7 +230,7 @@ export default function DashboardPage() {
               {items.slice(0, 5).map((manual) => (
                 <div key={manual.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">{manual.title}</h4>
+                    <h4 className="font-medium text-blue-700">{manual.title}</h4>
                     <p className="text-sm text-gray-600">{manual.department || 'No department'}</p>
                   </div>
                   <div className="flex items-center space-x-2">

@@ -44,7 +44,7 @@ export default function DashboardPage() {
     setBusy(true);
     setError(null);
     try {
-      const created = await createManual({ title, department });
+      const created = await createManual({ title, department, slug: slugify(title) });
       setItems((prev) => [created, ...prev]);
       setTitle('');
       setDepartment('');

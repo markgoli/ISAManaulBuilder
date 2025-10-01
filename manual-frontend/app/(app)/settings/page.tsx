@@ -58,7 +58,7 @@ export default function SettingsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+          <h1 className="text-2xl font-bold text-blue-700">Settings</h1>
           <p className="text-gray-600 mt-1">Configure your documentation system</p>
         </div>
         <Button 

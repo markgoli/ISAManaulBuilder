@@ -24,7 +24,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Sidebar/>
               <div className="flex-1 flex flex-col">
                 <TopNavBar/>
-                <main className="flex-1 p-6 overflow-y-auto">{children}</main>
+                <main className="flex-1 p-6 overflow-y-auto scrollbar-hide">{children}</main>
               </div>
             </div>
           </ProtectedRoute>

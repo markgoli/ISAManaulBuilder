@@ -7,12 +7,14 @@ from django.dispatch import receiver
 
 class User(AbstractUser):
     class Role(models.TextChoices):
-        AUTHOR = "AUTHOR", "Author"
-        REVIEWER = "REVIEWER", "Reviewer"
-        READER = "READER", "Reader"
+        USER = "USER", "User"
+        ANALYST = "ANALYST", "Analyst"
+        SUPERVISOR = "SUPERVISOR", "Supervisor"
+        MANAGER = "MANAGER", "Manager"
+        CHIEF_MANAGER = "CHIEF_MANAGER", "Chief Manager"
         ADMIN = "ADMIN", "Admin"
 
-    role = models.CharField(max_length=20, choices=Role.choices, default=Role.AUTHOR)
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.USER)
     department = models.CharField(max_length=200, blank=True)
 
     def __str__(self) -> str:  # pragma: no cover

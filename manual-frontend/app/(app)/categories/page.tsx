@@ -226,7 +226,7 @@ export default function CategoriesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Categories & Tags</h1>
+          <h1 className="text-2xl font-bold text-blue-700">Categories & Tags</h1>
           <p className="text-gray-600 mt-1">Organize your manuals with categories and tags</p>
         </div>
       </div>
@@ -298,7 +298,7 @@ export default function CategoriesPage() {
 
           {/* Create Category Modal */}
           {showCreateCategory && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-blue-950/20 bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 w-full max-w-md">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Create Category</h2>
                 <form onSubmit={handleCreateCategory} className="space-y-4">
@@ -398,7 +398,7 @@ export default function CategoriesPage() {
 
           {/* Create Tag Modal */}
           {showCreateTag && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-blue-950/20 bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 w-full max-w-md">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Create Tag</h2>
                 <form onSubmit={handleCreateTag} className="space-y-4">
@@ -475,7 +475,7 @@ export default function CategoriesPage() {
 
       {/* Edit Category Modal */}
       {showEditCategory && editingCategory && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-blue-950/20 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Edit Category</h2>
             <form onSubmit={handleUpdateCategory} className="space-y-4">
@@ -530,7 +530,7 @@ export default function CategoriesPage() {
 
       {/* Edit Tag Modal */}
       {showEditTag && editingTag && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-blue-950/20 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Edit Tag</h2>
             <form onSubmit={handleUpdateTag} className="space-y-4">
@@ -578,7 +578,7 @@ export default function CategoriesPage() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && deleteItem && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-blue-950/20 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Confirm Delete</h2>
             <p className="text-gray-600 mb-6">

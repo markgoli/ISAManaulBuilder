@@ -64,7 +64,7 @@ export default function ReviewsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Reviews</h1>
+          <h1 className="text-2xl font-bold text-blue-700">Reviews</h1>
           <p className="text-gray-600 mt-1">Review and approve submitted manuals</p>
         </div>
         <div className="flex gap-3">
@@ -190,7 +190,7 @@ export default function ReviewsPage() {
 
       {/* Review Modal */}
       {selectedReview && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-blue-950/20 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">Review Manual</h2>

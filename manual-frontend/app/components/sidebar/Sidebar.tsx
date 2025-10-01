@@ -45,18 +45,23 @@ export default function Sidebar() {
   const pathname = usePathname();
   
   return (
-    <aside className="h-full w-64 bg-white border-r border-gray-200">
+    <aside className="h-full w-60 my-blue-bg border-gray-200">
       {/* Logo */}
-      <div className="p-6 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-blue-600">Axora</h1>
-        <p className="text-xs text-gray-500 mt-1">Documentation Management</p>
+      <div className="px-2 py-6 border-gray-200 flex flex-col items-center">
+        <img
+          src="/logo/logo.png"
+          alt="Company Logo"
+          className="h-40 w-40 mb-2 rounded"
+        />
+        <h1 className="text-xl font-bold text-white">Axora</h1>
+        <p className="text-xs text-white/80 mt-1">Documentation Builder</p>
       </div>
 
       {/* Navigation */}
-      <div className="p-4">
+      <div className="px-4 py-4">
         {navSections.map((section) => (
           <div key={section.title} className="mb-6">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            <h3 className="text-xs font-semibold text-white uppercase tracking-wide mb-3">
               {section.title}
             </h3>
             <nav className="space-y-1">
@@ -66,10 +71,10 @@ export default function Sidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
+                    className={`flex items-center px-2 py-2 text-sm rounded-md transition-colors ${
                       active
                         ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-700 hover:bg-gray-50'
+                        : 'text-white hover:bg-blue-800'
                     }`}
                   >
                     <span className="mr-3">{item.icon}</span>

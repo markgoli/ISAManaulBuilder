@@ -1,4 +1,5 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from .views import (
     RegisterView,
     LoginView,
@@ -7,7 +8,12 @@ from .views import (
     ProfileView,
     ChangePasswordView,
     CSRFView,
+    UserManagementViewSet,
+    FirstLoginView,
 )
+
+router = DefaultRouter()
+router.register(r'users', UserManagementViewSet)
 
 
 urlpatterns = [
@@ -18,6 +24,8 @@ urlpatterns = [
     path('me/', MeView.as_view(), name='auth-me'),
     path('profile/', ProfileView.as_view(), name='auth-profile'),
     path('password/change/', ChangePasswordView.as_view(), name='auth-password-change'),
+    path('first-login/', FirstLoginView.as_view(), name='auth-first-login'),
+    path('', include(router.urls)),
 ]
 
 

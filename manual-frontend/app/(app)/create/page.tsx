@@ -30,6 +30,7 @@ export default function CreateManualPage() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'blocks' | 'templates'>('blocks');
 
   useEffect(() => {
     loadInitialData();
@@ -66,6 +67,24 @@ export default function CreateManualPage() {
       .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
   };
 
+  // Map frontend block types to backend-compatible types
+  const mapToBackendType = (frontendType: ContentBlockType): string => {
+    const typeMapping: Record<ContentBlockType, string> = {
+      'TEXT': 'TEXT',
+      'IMAGE': 'IMAGE', 
+      'VIDEO': 'TEXT', // Store as TEXT with video data
+      'TABLE': 'TABLE',
+      'LIST': 'CHECKLIST', // Map LIST to CHECKLIST
+      'CODE': 'TEXT', // Store as TEXT with code data
+      'QUOTE': 'TEXT', // Store as TEXT with quote data
+      'DIVIDER': 'TEXT', // Store as TEXT with divider marker
+      'CHECKLIST': 'CHECKLIST',
+      'DIAGRAM': 'DIAGRAM',
+      'TABS': 'TABS'
+    };
+    return typeMapping[frontendType] || 'TEXT';
+  };
+
   const addContentBlock = (type: ContentBlockType) => {
     const newBlock: ContentBlockData = {
       id: generateBlockId(),
@@ -76,24 +95,40 @@ export default function CreateManualPage() {
     setContentBlocks([...contentBlocks, newBlock]);
   };
 
+  const addMultipleContentBlocks = (types: ContentBlockType[]) => {
+    const newBlocks = types.map((type, index) => ({
+      id: generateBlockId(),
+      type,
+      content: getDefaultContent(type),
+      order: contentBlocks.length + index,
+    }));
+    setContentBlocks([...contentBlocks, ...newBlocks]);
+  };
+
   const getDefaultContent = (type: ContentBlockType) => {
     switch (type) {
       case 'TEXT':
         return { title: '', text: '' };
       case 'IMAGE':
         return { src: '', alt: '', caption: '' };
-      case 'LIST':
-        return { title: '', listType: 'bullet', items: [] };
+      case 'VIDEO':
+        return { title: '', url: '', description: '' };
       case 'TABLE':
         return { title: '', csvData: '' };
-      case 'VIDEO':
-        return { title: '', url: '' };
+      case 'LIST':
+        return { title: '', listType: 'bullet', items: [] };
       case 'CODE':
         return { title: '', code: '', language: 'javascript' };
       case 'QUOTE':
         return { quote: '', author: '' };
       case 'DIVIDER':
         return {};
+      case 'CHECKLIST':
+        return { title: '', items: [] };
+      case 'DIAGRAM':
+        return { title: '', diagramType: 'flowchart', data: '' };
+      case 'TABS':
+        return { tabs: [] };
       default:
         return {};
     }
@@ -124,8 +159,11 @@ export default function CreateManualPage() {
         for (const block of contentBlocks) {
           await createContentBlock({
             version: fullManual.current_version,
-            type: block.type,
-            data: block.content,
+            type: mapToBackendType(block.type) as any,
+            data: { 
+              ...block.content, 
+              originalType: block.type // Store original frontend type
+            },
             order: block.order,
           });
         }
@@ -163,7 +201,7 @@ export default function CreateManualPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Create Manual</h1>
+          <h1 className="text-2xl font-bold text-blue-700">Create Manual</h1>
           <p className="text-gray-600 mt-1">Create a new documentation manual</p>
         </div>
         <div className="flex gap-3">
@@ -196,128 +234,189 @@ export default function CreateManualPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form className="space-y-4">
-                <Input
-                  label="Title"
-                  value={manualData.title}
-                  onChange={(e) => setManualData({ ...manualData, title: e.target.value })}
-                  placeholder="Enter manual title..."
-                  required
-                />
-                
-
-                <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-12rem)]">
+        {/* Main Content - Scrollable */}
+        <div className="lg:col-span-2 overflow-y-auto scrollbar-hide">
+          <div className="space-y-6 pb-6">
+            {/* Basic Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Basic Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form className="space-y-4">
                   <Input
-                    label="Department"
-                    value={manualData.department}
-                    onChange={(e) => setManualData({ ...manualData, department: e.target.value })}
-                    placeholder="e.g., HR, IT, Operations"
+                    label="Title"
+                    value={manualData.title}
+                    onChange={(e) => setManualData({ ...manualData, title: e.target.value })}
+                    placeholder="Enter manual title..."
+                    required
                   />
                   
-                  <Select
-                    value={manualData.category}
-                    onChange={(e) => setManualData({ ...manualData, category: e.target.value })}
-                    label="Category"
-                  >
-                    <option value="">Select category...</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
 
-                <Input
-                  label="Tags"
-                  value={manualData.tags}
-                  onChange={(e) => setManualData({ ...manualData, tags: e.target.value })}
-                  placeholder="Enter tags separated by commas..."
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      label="Department"
+                      value={manualData.department}
+                      onChange={(e) => setManualData({ ...manualData, department: e.target.value })}
+                      placeholder="e.g., HR, IT, Operations"
+                    />
+                    
+                    <Select
+                      value={manualData.category}
+                      onChange={(e) => setManualData({ ...manualData, category: e.target.value })}
+                      label="Category"
+                    >
+                      <option value="">Select category...</option>
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+
+                  <Input
+                    label="Tags"
+                    value={manualData.tags}
+                    onChange={(e) => setManualData({ ...manualData, tags: e.target.value })}
+                    placeholder="Enter tags separated by commas..."
+                  />
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Content Builder */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Content Builder</span>
+                  {contentBlocks.length > 0 && (
+                    <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+                      {contentBlocks.length} block{contentBlocks.length !== 1 ? 's' : ''}
+                    </span>
+                  )}
+                </CardTitle>
+                <p className="text-sm text-gray-600">
+                  Build your manual using drag-and-drop content blocks. Add blocks from the sidebar and arrange them as needed.
+                  {contentBlocks.length > 3 && (
+                    <span className="block mt-1 text-blue-600 font-medium">
+                      💡 Scroll to see all blocks - sidebar stays accessible
+                    </span>
+                  )}
+                </p>
+              </CardHeader>
+              <CardContent>
+                <DragDropContainer
+                  blocks={contentBlocks}
+                  onUpdateBlocks={setContentBlocks}
                 />
-              </form>
-            </CardContent>
-          </Card>
-
-          {/* Content Builder */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Content Builder</CardTitle>
-              <p className="text-sm text-gray-600">
-                Build your manual using drag-and-drop content blocks. Add blocks from the sidebar and arrange them as needed.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <DragDropContainer
-                blocks={contentBlocks}
-                onUpdateBlocks={setContentBlocks}
-              />
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Content Blocks */}
+        {/* Sidebar - Fixed Height */}
+        <div className="space-y-6 overflow-y-auto h-full scrollbar-hide">
+          {/* Content Blocks & Templates - Tabbed Interface */}
           <Card>
-            <CardHeader>
-              <CardTitle>Content Blocks</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <BlockSelector onAddBlock={addContentBlock} />
-            </CardContent>
-          </Card>
-
-          {/* Quick Templates */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Templates</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <button 
-                  onClick={() => {
-                    addContentBlock('TEXT');
-                    addContentBlock('LIST');
-                    addContentBlock('TEXT');
-                  }}
-                  className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+            <CardHeader className="pb-3">
+              <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-lg">
+                <button
+                  onClick={() => setActiveTab('blocks')}
+                  className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                    activeTab === 'blocks'
+                      ? 'bg-white text-blue-700 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
                 >
-                  <div className="font-medium text-gray-900">📋 Process Flow</div>
-                  <div className="text-sm text-gray-600">Title + Steps + Description</div>
+                  Content Blocks
                 </button>
-                <button 
-                  onClick={() => {
-                    addContentBlock('TEXT');
-                    addContentBlock('QUOTE');
-                    addContentBlock('LIST');
-                  }}
-                  className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                <button
+                  onClick={() => setActiveTab('templates')}
+                  className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                    activeTab === 'templates'
+                      ? 'bg-white text-blue-700 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
                 >
-                  <div className="font-medium text-gray-900">📜 Policy Document</div>
-                  <div className="text-sm text-gray-600">Introduction + Quote + Rules</div>
-                </button>
-                <button 
-                  onClick={() => {
-                    addContentBlock('TEXT');
-                    addContentBlock('IMAGE');
-                    addContentBlock('LIST');
-                    addContentBlock('VIDEO');
-                  }}
-                  className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
-                >
-                  <div className="font-medium text-gray-900">🎓 Training Guide</div>
-                  <div className="text-sm text-gray-600">Text + Image + Steps + Video</div>
+                  Quick Templates
                 </button>
               </div>
+            </CardHeader>
+            <CardContent>
+              {activeTab === 'blocks' && (
+                <BlockSelector onAddBlock={addContentBlock} />
+              )}
+              
+              {activeTab === 'templates' && (
+                <div className="space-y-4">
+                  {/* Process Flow Template */}
+                  <button 
+                    onClick={() => addMultipleContentBlocks(['TEXT', 'LIST', 'TEXT'])}
+                    className="w-full p-4 bg-white border-2 border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 hover:shadow-md"
+                  >
+                    <div className="flex flex-col space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="font-semibold text-gray-900">📋 Process Flow</div>
+                        <div className="text-xs text-gray-500">3 blocks</div>
+                      </div>
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="flex items-center justify-center w-8 h-8 bg-slate-100 rounded border text-sm">📝</div>
+                        <div className="text-gray-400">→</div>
+                        <div className="flex items-center justify-center w-8 h-8 bg-slate-100 rounded border text-sm">📋</div>
+                        <div className="text-gray-400">→</div>
+                        <div className="flex items-center justify-center w-8 h-8 bg-slate-100 rounded border text-sm">📝</div>
+                      </div>
+                      <div className="text-xs text-gray-600 text-center">Title + Steps + Description</div>
+                    </div>
+                  </button>
+
+                  {/* Policy Document Template */}
+                  <button 
+                    onClick={() => addMultipleContentBlocks(['TEXT', 'QUOTE', 'LIST'])}
+                    className="w-full p-4 bg-white border-2 border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 hover:shadow-md"
+                  >
+                    <div className="flex flex-col space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="font-semibold text-gray-900">📜 Policy Document</div>
+                        <div className="text-xs text-gray-500">3 blocks</div>
+                      </div>
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="flex items-center justify-center w-8 h-8 bg-slate-100 rounded border text-sm">📝</div>
+                        <div className="text-gray-400">→</div>
+                        <div className="flex items-center justify-center w-8 h-8 bg-slate-100 rounded border text-sm">💬</div>
+                        <div className="text-gray-400">→</div>
+                        <div className="flex items-center justify-center w-8 h-8 bg-slate-100 rounded border text-sm">📋</div>
+                      </div>
+                      <div className="text-xs text-gray-600 text-center">Introduction + Quote + Rules</div>
+                    </div>
+                  </button>
+
+                  {/* Training Guide Template */}
+                  <button 
+                    onClick={() => addMultipleContentBlocks(['TEXT', 'IMAGE', 'LIST', 'VIDEO'])}
+                    className="w-full p-4 bg-white border-2 border-slate-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 hover:shadow-md"
+                  >
+                    <div className="flex flex-col space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="font-semibold text-gray-900">🎓 Training Guide</div>
+                        <div className="text-xs text-gray-500">4 blocks</div>
+                      </div>
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="flex items-center justify-center w-8 h-8 bg-slate-100 rounded border text-sm">📝</div>
+                        <div className="text-gray-400">→</div>
+                        <div className="flex items-center justify-center w-8 h-8 bg-slate-100 rounded border text-sm">🖼️</div>
+                        <div className="text-gray-400">→</div>
+                        <div className="flex items-center justify-center w-8 h-8 bg-slate-100 rounded border text-sm">📋</div>
+                        <div className="text-gray-400">→</div>
+                        <div className="flex items-center justify-center w-8 h-8 bg-slate-100 rounded border text-sm">📹</div>
+                      </div>
+                      <div className="text-xs text-gray-600 text-center">Text + Image + Steps + Video</div>
+                    </div>
+                  </button>
+                </div>
+              )}
             </CardContent>
           </Card>
 

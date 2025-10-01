@@ -87,6 +87,24 @@ export default function EditManualPage() {
     return `block_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   };
 
+  // Map frontend block types to backend-compatible types
+  const mapToBackendType = (frontendType: ContentBlockType): string => {
+    const typeMapping: Record<ContentBlockType, string> = {
+      'TEXT': 'TEXT',
+      'IMAGE': 'IMAGE', 
+      'VIDEO': 'TEXT', // Store as TEXT with video data
+      'TABLE': 'TABLE',
+      'LIST': 'CHECKLIST', // Map LIST to CHECKLIST
+      'CODE': 'TEXT', // Store as TEXT with code data
+      'QUOTE': 'TEXT', // Store as TEXT with quote data
+      'DIVIDER': 'TEXT', // Store as TEXT with divider marker
+      'CHECKLIST': 'CHECKLIST',
+      'DIAGRAM': 'DIAGRAM',
+      'TABS': 'TABS'
+    };
+    return typeMapping[frontendType] || 'TEXT';
+  };
+
   const addContentBlock = (type: ContentBlockType) => {
     const newBlock: ContentBlockData = {
       id: generateBlockId(),
@@ -148,8 +166,11 @@ export default function EditManualPage() {
       for (const block of contentBlocks) {
         await createContentBlock({
           version: newVersion.id,
-          type: block.type,
-          data: block.content,
+          type: mapToBackendType(block.type) as any,
+          data: { 
+            ...block.content, 
+            originalType: block.type // Store original frontend type
+          },
           order: block.order,
         });
       }
@@ -172,7 +193,7 @@ export default function EditManualPage() {
   const canEdit = user && manual && (
     manual.created_by === user.id || 
     user.role === 'ADMIN' || 
-    user.role === 'REVIEWER'
+    user.role === 'MANAGER'
   );
 
   if (loading) {
@@ -221,7 +242,7 @@ export default function EditManualPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Edit Manual</h1>
+          <h1 className="text-2xl font-bold text-blue-700">Edit Manual</h1>
           <p className="text-gray-600 mt-1">Make changes to your documentation manual</p>
         </div>
         <div className="flex gap-3">
@@ -253,54 +274,68 @@ export default function EditManualPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <Input
-                  label="Title"
-                  value={manualData.title}
-                  onChange={(e) => setManualData({ ...manualData, title: e.target.value })}
-                  placeholder="Enter manual title..."
-                  required
-                />
-                
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-12rem)]">
+        {/* Main Content - Scrollable */}
+        <div className="lg:col-span-2 overflow-y-auto scrollbar-hide">
+          <div className="space-y-6 pb-6">
+            {/* Basic Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Basic Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Input
+                    label="Title"
+                    value={manualData.title}
+                    onChange={(e) => setManualData({ ...manualData, title: e.target.value })}
+                    placeholder="Enter manual title..."
+                    required
+                  />
+                  
 
-                <Input
-                  label="Department"
-                  value={manualData.department}
-                  onChange={(e) => setManualData({ ...manualData, department: e.target.value })}
-                  placeholder="e.g., HR, IT, Operations"
-                />
-              </div>
-            </CardContent>
-          </Card>
+                  <Input
+                    label="Department"
+                    value={manualData.department}
+                    onChange={(e) => setManualData({ ...manualData, department: e.target.value })}
+                    placeholder="e.g., HR, IT, Operations"
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Content Builder */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Content Builder</CardTitle>
-              <p className="text-sm text-gray-600">
-                Edit your manual using drag-and-drop content blocks. Add, remove, or rearrange blocks as needed.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <DragDropContainer
-                blocks={contentBlocks}
-                onUpdateBlocks={setContentBlocks}
-              />
-            </CardContent>
-          </Card>
+            {/* Content Builder */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Content Builder</span>
+                  {contentBlocks.length > 0 && (
+                    <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+                      {contentBlocks.length} block{contentBlocks.length !== 1 ? 's' : ''}
+                    </span>
+                  )}
+                </CardTitle>
+                <p className="text-sm text-gray-600">
+                  Edit your manual using drag-and-drop content blocks. Add, remove, or rearrange blocks as needed.
+                  {contentBlocks.length > 3 && (
+                    <span className="block mt-1 text-blue-600 font-medium">
+                      💡 Scroll to see all blocks - sidebar stays accessible
+                    </span>
+                  )}
+                </p>
+              </CardHeader>
+              <CardContent>
+                <DragDropContainer
+                  blocks={contentBlocks}
+                  onUpdateBlocks={setContentBlocks}
+                />
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
+        {/* Sidebar - Fixed Height */}
+        <div className="space-y-6 overflow-y-auto h-full scrollbar-hide">
           {/* Content Blocks */}
           <Card>
             <CardHeader>

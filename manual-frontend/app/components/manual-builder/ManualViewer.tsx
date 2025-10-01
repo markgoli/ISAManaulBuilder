@@ -88,6 +88,25 @@ export default function ManualViewer({ manual, version, contentBlocks, onEdit }:
           </div>
         );
 
+      case 'CHECKLIST':
+        return (
+          <div className="space-y-2">
+            {block.data?.title && (
+              <h3 className="text-lg font-medium text-gray-900">{block.data.title}</h3>
+            )}
+            {block.data?.items?.length > 0 && (
+              <div className="space-y-2">
+                {block.data.items.map((item: string, index: number) => (
+                  <div key={index} className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
+                    <input type="checkbox" className="rounded text-blue-600 focus:ring-blue-500" readOnly />
+                    <span className="text-gray-700">{item}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+
       case 'TABLE':
         return (
           <div className="space-y-2">
@@ -170,6 +189,9 @@ export default function ManualViewer({ manual, version, contentBlocks, onEdit }:
                 />
               </div>
             )}
+            {block.data?.description && (
+              <p className="text-sm text-gray-600 mt-2">{block.data.description}</p>
+            )}
           </div>
         );
 
@@ -177,6 +199,44 @@ export default function ManualViewer({ manual, version, contentBlocks, onEdit }:
         return (
           <div className="py-6">
             <hr className="border-gray-300" />
+          </div>
+        );
+
+      case 'DIAGRAM':
+        return (
+          <div className="space-y-2">
+            {block.data?.title && (
+              <h3 className="text-lg font-medium text-gray-900">{block.data.title}</h3>
+            )}
+            {block.data?.data && (
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-dashed border-blue-200 rounded-lg p-6 text-center">
+                <div className="text-4xl text-blue-500 mb-2">📈</div>
+                <div className="text-sm text-blue-600 font-medium mb-2">{block.data.diagramType}</div>
+                <p className="text-gray-700 text-sm">{block.data.data}</p>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'TABS':
+        return (
+          <div className="space-y-2">
+            {block.data?.tabs?.length > 0 && (
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="flex border-b border-gray-200 bg-gray-50">
+                  {block.data.tabs.map((tab: any, index: number) => (
+                    <div key={index} className="px-4 py-2 text-sm font-medium text-gray-700 border-r border-gray-200 last:border-r-0">
+                      {tab.title || `Tab ${index + 1}`}
+                    </div>
+                  ))}
+                </div>
+                <div className="p-4">
+                  <p className="text-gray-700 text-sm">
+                    {block.data.tabs[0]?.content || 'No content'}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         );
 

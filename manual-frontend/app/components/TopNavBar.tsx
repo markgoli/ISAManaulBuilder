@@ -187,29 +187,29 @@ export default function TopNavBar() {
   const breadcrumbs = generateBreadcrumbs();
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6">
+    <header className="h-16 my-blue-bg border-b border-slate-200 flex items-center justify-between px-6">
       {/* Left side - Menu and Breadcrumb */}
       <div className="flex items-center space-x-4">
         <button className="p-2 hover:bg-slate-100 rounded">
-          <span className="text-slate-500">☰</span>
+          <span className="text-white">☰</span>
         </button>
         <div className="flex items-center space-x-2 text-sm">
           {breadcrumbs.map((breadcrumb, index) => (
             <div key={`${breadcrumb.path}-${index}`} className="flex items-center space-x-2">
               {breadcrumb.isLast || breadcrumb.path === '#' ? (
-                <span className="text-slate-500 font-medium">
+                <span className="text-white font-medium">
                   {breadcrumb.name}
                 </span>
               ) : (
                 <Link 
                   href={breadcrumb.path} 
-                  className="text-blue-600 font-medium hover:text-blue-800 transition-colors"
+                  className="text-white font-medium hover:text-blue-800 transition-colors"
                 >
                   {breadcrumb.name}
                 </Link>
               )}
               {!breadcrumb.isLast && (
-                <span className="text-slate-400">›</span>
+                <span className="text-white">›</span>
               )}
             </div>
           ))}
@@ -221,7 +221,7 @@ export default function TopNavBar() {
         <form onSubmit={handleSearchSubmit} className="relative">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -234,7 +234,7 @@ export default function TopNavBar() {
               className="
                 block w-full pl-10 pr-12 py-2.5 
                 border border-slate-300 rounded-lg
-                bg-white text-slate-700 placeholder-slate-400
+                bg-white/95 text-gray-500 placeholder-gray-500
                 focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                 hover:border-slate-400
                 transition-all duration-200 outline-none
@@ -243,7 +243,7 @@ export default function TopNavBar() {
             />
             {isSearching && (
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                <svg className="animate-spin h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                 </svg>
@@ -256,7 +256,7 @@ export default function TopNavBar() {
                   setSearchQuery("");
                   setShowResults(false);
                 }}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-blue-800"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -313,9 +313,9 @@ export default function TopNavBar() {
               </>
             ) : (
               <div className="px-4 py-8 text-center">
-                <div className="text-slate-400 text-2xl mb-2">🔍</div>
+                <div className="text-gray-500 text-2xl mb-2">🔍</div>
                 <p className="text-slate-500 text-sm">No manuals found</p>
-                <p className="text-slate-400 text-xs mt-1">Try different keywords</p>
+                <p className="text-gray-500 text-xs mt-1">Try different keywords</p>
               </div>
             )}
           </div>
@@ -327,13 +327,13 @@ export default function TopNavBar() {
         {/* User Profile */}
         <div className="flex items-center space-x-3">
           {user && (
-            <span className="text-sm text-slate-500">
-              Welcome, {user.first_name || user.username}
+            <span className="text-sm text-white">
+              Welcome, {(user.first_name || user.username)?.charAt(0).toUpperCase() + (user.first_name || user.username)?.slice(1).toLowerCase()}
             </span>
           )}
 
           <button
-            className="p-2 rounded-full hover:bg-blue-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 rounded-full hover:bg-blue-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleLogout}
             disabled={loggingOut || loading}
             title={loggingOut ? "Logging out..." : "Log out"}
@@ -341,7 +341,7 @@ export default function TopNavBar() {
           >
             {loggingOut ? (
               <svg
-                className="animate-spin h-5 w-5 text-blue-600"
+                className="animate-spin h-5 w-5 text-white"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -361,7 +361,7 @@ export default function TopNavBar() {
                 ></path>
               </svg>
             ) : (
-              <FontAwesomeIcon icon={faPowerOff} className="h-5 w-5 text-blue-600" />
+              <FontAwesomeIcon icon={faPowerOff} className="h-5 w-5 text-white" />
             )}
           </button>
 

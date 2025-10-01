@@ -67,7 +67,7 @@ export default function ContentBlock({
                     title: e.target.value,
                   })}
                   placeholder="Enter heading..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm"
                 />
                 <textarea
                   value={block.content?.text || ''}
@@ -77,7 +77,7 @@ export default function ContentBlock({
                   })}
                   placeholder="Enter your text content..."
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500  text-gray-600 text-sm"
                 />
                 <div className="flex gap-2">
                   <button
@@ -183,7 +183,7 @@ export default function ContentBlock({
                     title: e.target.value,
                   })}
                   placeholder="List title..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm"
                 />
                 <select
                   value={block.content?.listType || 'bullet'}
@@ -191,7 +191,7 @@ export default function ContentBlock({
                     ...block.content,
                     listType: e.target.value,
                   })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500  text-gray-600 text-sm"
                 >
                   <option value="bullet">Bullet List</option>
                   <option value="numbered">Numbered List</option>
@@ -201,11 +201,17 @@ export default function ContentBlock({
                   value={block.content?.items?.join('\n') || ''}
                   onChange={(e) => handleContentChange({
                     ...block.content,
-                    items: e.target.value.split('\n').filter(item => item.trim()),
+                    items: e.target.value.split('\n'),
                   })}
+                  onKeyDown={(e) => {
+                    // Allow Enter key to create new lines
+                    if (e.key === 'Enter') {
+                      e.stopPropagation();
+                    }
+                  }}
                   placeholder="Enter list items (one per line)..."
                   rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm resize-none"
                 />
                 <button
                   onClick={() => setIsEditing(false)}
@@ -217,16 +223,16 @@ export default function ContentBlock({
             ) : (
               <div onClick={() => setIsEditing(true)} className="cursor-pointer hover:bg-gray-50 p-2 rounded">
                 <h3 className="font-medium text-gray-900 mb-2">{block.content?.title || 'Click to add list title'}</h3>
-                {block.content?.items?.length > 0 ? (
+                {block.content?.items?.filter((item: string) => item.trim()).length > 0 ? (
                   block.content.listType === 'numbered' ? (
                     <ol className="list-decimal list-inside space-y-1">
-                      {block.content.items.map((item: string, index: number) => (
+                      {block.content.items.filter((item: string) => item.trim()).map((item: string, index: number) => (
                         <li key={index} className="text-gray-700">{item}</li>
                       ))}
                     </ol>
                   ) : block.content.listType === 'checklist' ? (
                     <div className="space-y-1">
-                      {block.content.items.map((item: string, index: number) => (
+                      {block.content.items.filter((item: string) => item.trim()).map((item: string, index: number) => (
                         <div key={index} className="flex items-center space-x-2">
                           <input type="checkbox" className="rounded" />
                           <span className="text-gray-700">{item}</span>
@@ -235,13 +241,71 @@ export default function ContentBlock({
                     </div>
                   ) : (
                     <ul className="list-disc list-inside space-y-1">
-                      {block.content.items.map((item: string, index: number) => (
+                      {block.content.items.filter((item: string) => item.trim()).map((item: string, index: number) => (
                         <li key={index} className="text-gray-700">{item}</li>
                       ))}
                     </ul>
                   )
                 ) : (
                   <p className="text-gray-500">Click to add list items</p>
+                )}
+              </div>
+            )}
+          </div>
+        );
+
+      case 'CHECKLIST':
+        return (
+          <div className="space-y-2">
+            {isEditing ? (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={block.content?.title || ''}
+                  onChange={(e) => handleContentChange({
+                    ...block.content,
+                    title: e.target.value,
+                  })}
+                  placeholder="Checklist title..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500  text-gray-600 text-sm"
+                />
+                <textarea
+                  value={block.content?.items?.join('\n') || ''}
+                  onChange={(e) => handleContentChange({
+                    ...block.content,
+                    items: e.target.value.split('\n'),
+                  })}
+                  onKeyDown={(e) => {
+                    // Allow Enter key to create new lines
+                    if (e.key === 'Enter') {
+                      e.stopPropagation();
+                    }
+                  }}
+                  placeholder="Enter checklist items (one per line)..."
+                  rows={6}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm resize-none"
+                />
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Save
+                </button>
+              </div>
+            ) : (
+              <div onClick={() => setIsEditing(true)} className="cursor-pointer hover:bg-gray-50 p-2 rounded">
+                <h3 className="font-medium text-gray-900 mb-2">{block.content?.title || 'Click to add checklist title'}</h3>
+                {block.content?.items?.length > 0 ? (
+                  <div className="space-y-2">
+                    {block.content.items.map((item: string, index: number) => (
+                      <div key={index} className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
+                        <input type="checkbox" className="rounded text-blue-600 focus:ring-blue-500" />
+                        <span className="text-gray-700">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">Click to add checklist items</p>
                 )}
               </div>
             )}
@@ -261,7 +325,7 @@ export default function ContentBlock({
                     title: e.target.value,
                   })}
                   placeholder="Table title..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm"
                 />
                 <textarea
                   value={block.content?.csvData || ''}
@@ -271,7 +335,7 @@ export default function ContentBlock({
                   })}
                   placeholder="Enter table data (CSV format)&#10;Header 1, Header 2, Header 3&#10;Row 1 Col 1, Row 1 Col 2, Row 1 Col 3&#10;Row 2 Col 1, Row 2 Col 2, Row 2 Col 3"
                   rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm"
                 />
                 <button
                   onClick={() => setIsEditing(false)}
@@ -324,7 +388,7 @@ export default function ContentBlock({
                     title: e.target.value,
                   })}
                   placeholder="Code block title..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm"
                 />
                 <select
                   value={block.content?.language || 'javascript'}
@@ -332,7 +396,7 @@ export default function ContentBlock({
                     ...block.content,
                     language: e.target.value,
                   })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm"
                 >
                   <option value="javascript">JavaScript</option>
                   <option value="python">Python</option>
@@ -393,7 +457,7 @@ export default function ContentBlock({
                   })}
                   placeholder="Enter the quote..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm"
                 />
                 <input
                   type="text"
@@ -403,7 +467,7 @@ export default function ContentBlock({
                     author: e.target.value,
                   })}
                   placeholder="Quote author..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm"
                 />
                 <button
                   onClick={() => setIsEditing(false)}
@@ -444,7 +508,7 @@ export default function ContentBlock({
                     title: e.target.value,
                   })}
                   placeholder="Video title..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm"
                 />
                 <input
                   type="url"
@@ -454,7 +518,7 @@ export default function ContentBlock({
                     url: e.target.value,
                   })}
                   placeholder="Video URL (YouTube, Vimeo, etc.)..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm"
                 />
                 <textarea
                   value={block.content?.description || ''}
@@ -464,7 +528,7 @@ export default function ContentBlock({
                   })}
                   placeholder="Video description..."
                   rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm"
                 />
                 <button
                   onClick={() => setIsEditing(false)}
@@ -506,6 +570,160 @@ export default function ContentBlock({
         return (
           <div className="py-4">
             <hr className="border-gray-300" />
+          </div>
+        );
+
+      case 'DIAGRAM':
+        return (
+          <div className="space-y-2">
+            {isEditing ? (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={block.content?.title || ''}
+                  onChange={(e) => handleContentChange({
+                    ...block.content,
+                    title: e.target.value,
+                  })}
+                  placeholder="Diagram title..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                />
+                <select
+                  value={block.content?.diagramType || 'flowchart'}
+                  onChange={(e) => handleContentChange({
+                    ...block.content,
+                    diagramType: e.target.value,
+                  })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="flowchart">Flowchart</option>
+                  <option value="process">Process Diagram</option>
+                  <option value="organizational">Organizational Chart</option>
+                  <option value="network">Network Diagram</option>
+                </select>
+                <textarea
+                  value={block.content?.data || ''}
+                  onChange={(e) => handleContentChange({
+                    ...block.content,
+                    data: e.target.value,
+                  })}
+                  placeholder="Enter diagram description or data..."
+                  rows={6}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm"
+                />
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Save
+                </button>
+              </div>
+            ) : (
+              <div onClick={() => setIsEditing(true)} className="cursor-pointer hover:bg-gray-50 p-2 rounded">
+                <h3 className="font-medium text-gray-900 mb-2">{block.content?.title || 'Click to add diagram title'}</h3>
+                {block.content?.data ? (
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-dashed border-blue-200 rounded-lg p-6 text-center">
+                    <div className="text-4xl text-blue-500 mb-2">📈</div>
+                    <div className="text-sm text-blue-600 font-medium mb-2">{block.content.diagramType}</div>
+                    <p className="text-gray-700 text-sm">{block.content.data}</p>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <div className="text-4xl text-gray-400 mb-2">📈</div>
+                    <p className="text-gray-500">Click to add diagram</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+
+      case 'TABS':
+        return (
+          <div className="space-y-2">
+            {isEditing ? (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <h4 className="font-medium text-gray-900">Tabs</h4>
+                  <button
+                    onClick={() => {
+                      const newTabs = [...(block.content?.tabs || []), { title: 'New Tab', content: '' }];
+                      handleContentChange({ ...block.content, tabs: newTabs });
+                    }}
+                    className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                  >
+                    Add Tab
+                  </button>
+                </div>
+                {block.content?.tabs?.map((tab: any, index: number) => (
+                  <div key={index} className="border border-gray-200 rounded p-3 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <input
+                        type="text"
+                        value={tab.title || ''}
+                        onChange={(e) => {
+                          const newTabs = [...block.content.tabs];
+                          newTabs[index] = { ...tab, title: e.target.value };
+                          handleContentChange({ ...block.content, tabs: newTabs });
+                        }}
+                        placeholder="Tab title..."
+                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                      />
+                      <button
+                        onClick={() => {
+                          const newTabs = block.content.tabs.filter((_: any, i: number) => i !== index);
+                          handleContentChange({ ...block.content, tabs: newTabs });
+                        }}
+                        className="ml-2 px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <textarea
+                      value={tab.content || ''}
+                      onChange={(e) => {
+                        const newTabs = [...block.content.tabs];
+                        newTabs[index] = { ...tab, content: e.target.value };
+                        handleContentChange({ ...block.content, tabs: newTabs });
+                      }}
+                      placeholder="Tab content..."
+                      rows={3}
+                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                    />
+                  </div>
+                ))}
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Save
+                </button>
+              </div>
+            ) : (
+              <div onClick={() => setIsEditing(true)} className="cursor-pointer hover:bg-gray-50 p-2 rounded">
+                {block.content?.tabs?.length > 0 ? (
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="flex border-b border-gray-200 bg-gray-50">
+                      {block.content.tabs.map((tab: any, index: number) => (
+                        <div key={index} className="px-4 py-2 text-sm font-medium text-gray-700 border-r border-gray-200 last:border-r-0">
+                          {tab.title || `Tab ${index + 1}`}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="p-4">
+                      <p className="text-gray-700 text-sm">
+                        {block.content.tabs[0]?.content || 'Click to edit tab content'}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <div className="text-4xl text-gray-400 mb-2">📑</div>
+                    <p className="text-gray-500">Click to add tabs</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         );
 

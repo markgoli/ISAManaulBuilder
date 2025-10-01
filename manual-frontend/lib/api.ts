@@ -45,17 +45,20 @@ export type Profile = {
   updated_at: string;
 };
 
+export type UserRole = 'USER' | 'ANALYST' | 'SUPERVISOR' | 'MANAGER' | 'CHIEF_MANAGER' | 'ADMIN';
+
 export type User = {
   id: number;
   username: string;
   email: string;
   first_name: string;
   last_name: string;
-  role: 'AUTHOR' | 'REVIEWER' | 'READER' | 'ADMIN';
+  role: UserRole;
   department: string;
   profile?: Profile;
   date_joined: string;
   last_login: string | null;
+  is_active: boolean;
 };
 
 export async function loginApi(username: string, password: string): Promise<User> {
@@ -91,6 +94,55 @@ export function updateProfileApi(payload: UpdateProfilePayload): Promise<Profile
 
 export function changePasswordApi(old_password: string, new_password: string): Promise<{ detail: string }> {
   return apiFetch('/api/auth/password/change/', { method: 'POST', body: JSON.stringify({ old_password, new_password }) });
+}
+
+// User Management
+export type CreateUserPayload = {
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: UserRole;
+  department: string;
+};
+
+export type UpdateUserPayload = Partial<CreateUserPayload>;
+
+export function listUsers(): Promise<User[]> {
+  return apiFetch<User[]>('/api/auth/users/');
+}
+
+export function getUser(id: number): Promise<User> {
+  return apiFetch<User>(`/api/auth/users/${id}/`);
+}
+
+export function createUser(payload: CreateUserPayload): Promise<User> {
+  return apiFetch<User>('/api/auth/users/', { method: 'POST', body: JSON.stringify(payload) });
+}
+
+export function updateUser(id: number, payload: UpdateUserPayload): Promise<User> {
+  return apiFetch<User>(`/api/auth/users/${id}/`, { method: 'PATCH', body: JSON.stringify(payload) });
+}
+
+export function deleteUser(id: number): Promise<void> {
+  return apiFetch(`/api/auth/users/${id}/`, { method: 'DELETE' });
+}
+
+export function resetUserPassword(id: number): Promise<{ detail: string }> {
+  return apiFetch(`/api/auth/users/${id}/reset_password/`, { method: 'POST' });
+}
+
+export function toggleUserActive(id: number): Promise<{ detail: string }> {
+  return apiFetch(`/api/auth/users/${id}/toggle_active/`, { method: 'POST' });
+}
+
+// First Login
+export function checkFirstLogin(): Promise<{ must_change_password: boolean }> {
+  return apiFetch('/api/auth/first-login/');
+}
+
+export function firstLoginPasswordChange(old_password: string, new_password: string): Promise<{ detail: string }> {
+  return apiFetch('/api/auth/first-login/', { method: 'POST', body: JSON.stringify({ old_password, new_password }) });
 }
 
 // Manuals
@@ -239,7 +291,7 @@ export async function previewVersion(id: number): Promise<ManualVersion> {
 }
 
 // Content Blocks
-export type ContentBlockType = 'TEXT' | 'IMAGE' | 'VIDEO' | 'TABLE' | 'LIST' | 'CODE' | 'QUOTE' | 'DIVIDER';
+export type ContentBlockType = 'TEXT' | 'IMAGE' | 'VIDEO' | 'TABLE' | 'LIST' | 'CODE' | 'QUOTE' | 'DIVIDER' | 'CHECKLIST' | 'DIAGRAM' | 'TABS';
 
 // Content Blocks
 export type ContentBlock = {

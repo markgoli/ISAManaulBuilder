@@ -267,7 +267,7 @@ export default function ManualsPage() {
                   </svg>
                 </button>
                 
-                {user && (manual.created_by === user.id || user.role === 'ADMIN' || user.role === 'REVIEWER') && (
+                {user && (manual.created_by === user.id || user.role === 'ADMIN' || user.role === 'MANAGER') && (
                   <button
                     onClick={() => window.location.href = `/manuals/${manual.id}/edit`}
                     title="Edit Manual"
@@ -323,7 +323,7 @@ export default function ManualsPage() {
 
       {/* Create Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-blue-950/20 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold text-blue-700 mb-4">Create New Manual</h2>
             <form onSubmit={createManualHandler} className="space-y-4">

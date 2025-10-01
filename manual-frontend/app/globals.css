@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+/* Hide scrollbar while maintaining scroll functionality */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
+  }
+}
+
 :root {
   /* Light, professional color palette */
   --color-primary: #3b82f6; /* softer blue */
@@ -46,7 +57,7 @@ body {
 .login-bg {
   position: relative;
   min-height: 100vh;
-  background: linear-gradient(180deg, #eaf4ff 0%, #a9d1ff 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   overflow: hidden;
 }
 
@@ -65,7 +76,7 @@ body {
 /* Left panel gradient + bottom glow to mirror reference */
 .panel-left {
   position: relative;
-  background: #2642c8;
+  background: #1e40af;
 }
 .panel-left::after {
   content: "";  
@@ -80,4 +91,8 @@ body {
   filter: blur(16px);
   opacity: .35;
   pointer-events: none;
+}
+
+.my-blue-bg {
+  background-color: #0055c6;
 }

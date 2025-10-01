@@ -33,6 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
             "profile",
             "date_joined",
             "last_login",
+            "is_active",
         ]
         read_only_fields = ["date_joined", "last_login"]
 

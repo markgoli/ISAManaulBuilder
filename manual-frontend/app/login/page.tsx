@@ -7,6 +7,9 @@ import Button from '../components/ui/Button';
 import FormError from '../components/ui/FormError';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faLock, faPowerOff, faUser } from "@fortawesome/free-solid-svg-icons";
+
 
 export default function LoginPage() {
   const { login, error, loading, user } = useAuth();
@@ -53,9 +56,10 @@ export default function LoginPage() {
         <div className="bg-white p-8 md:p-10">
           <h1 className="text-center text-gray-800 text-[18px] font-semibold mb-6">Sign In</h1>
           <form onSubmit={onSubmit} className="flex flex-col gap-4">
-            <Input label="Username" value={username} onChange={(e) => setUsername(e.target.value)} required className="text-blue-600" />
+            <Input icon={<FontAwesomeIcon icon={faUser} />} label="Username" value={username} onChange={(e) => setUsername(e.target.value)} required className="text-blue-600" />
             <div className="relative">
               <Input
+                icon={<FontAwesomeIcon icon={faLock} />}
                 label="Password"
                 type={showPwd ? 'text' : 'password'}
                 value={password}

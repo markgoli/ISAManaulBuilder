@@ -5,6 +5,8 @@ import TopNavBar from "../components/TopNavBar";
 import Sidebar from "../components/sidebar/Sidebar";
 import { AuthProvider } from "../../context/AuthContext";
 import ProtectedRoute from "../components/ProtectedRoute";
+import { SessionTimeoutNotification } from "../components/SessionTimeoutNotification";
+import { ToastProvider } from "../components/ui/Toast";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -19,15 +21,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <body suppressHydrationWarning={true} className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}>
         <AuthProvider>
-          <ProtectedRoute>
-            <div className="flex h-screen">
-              <Sidebar/>
-              <div className="flex-1 flex flex-col">
-                <TopNavBar/>
-                <main className="flex-1 p-6 overflow-y-auto scrollbar-hide">{children}</main>
+          <ToastProvider>
+            <ProtectedRoute>
+              <div className="flex h-screen">
+                <Sidebar/>
+                <div className="flex-1 flex flex-col">
+                  <TopNavBar/>
+                  <main className="flex-1 p-6 overflow-y-auto scrollbar-hide">{children}</main>
+                </div>
               </div>
-            </div>
-          </ProtectedRoute>
+              {/* Session timeout notification overlay */}
+              <SessionTimeoutNotification />
+            </ProtectedRoute>
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

@@ -7,6 +7,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from django.contrib.auth.hashers import make_password
+import time
 
 from .models import User, Profile
 from .serializers import (
@@ -199,3 +200,26 @@ class FirstLoginView(APIView):
             user.profile.save()
         
         return Response({"detail": "Password changed successfully."})
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def extend_session(request):
+    """
+    Extend the user's session by resetting the session timestamp.
+    """
+    try:
+        # Reset session timestamp to extend the session
+        request.session['_session_init_timestamp_'] = time.time()
+        request.session.save()
+        
+        return Response({
+            "detail": "Session extended successfully.",
+            "remaining_time": 1800,  # 30 minutes
+            "extended_at": time.time()
+        })
+    except Exception as e:
+        return Response(
+            {"error": "Failed to extend session.", "detail": str(e)}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

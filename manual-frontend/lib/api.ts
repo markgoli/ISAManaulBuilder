@@ -146,15 +146,37 @@ export function firstLoginPasswordChange(old_password: string, new_password: str
 }
 
 // Manuals
-export type ManualStatus = 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'PUBLISHED' | 'REJECTED';
+export type ManualStatus = 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
+
+export type CollaboratorRole = 'EDITOR' | 'VIEWER';
+
+export type ManualCollaborator = {
+  id: number;
+  manual: number;
+  user_id: number;
+  user_username: string;
+  user_email: string;
+  user_first_name: string;
+  user_last_name: string;
+  role: CollaboratorRole;
+  added_by: number;
+  added_by_username: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Manual = {
   id: number;
   title: string;
   slug: string;
+  reference: string;
   department: string;
   status: ManualStatus;
   created_by: number;
   current_version?: number;
+  collaborators?: ManualCollaborator[];
+  can_edit?: boolean;
+  can_view?: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -168,37 +190,53 @@ export async function createManual(payload: { title: string; slug: string; depar
   return apiFetch<Manual>('/api/manuals/', { method: 'POST', body: JSON.stringify(payload) });
 }
 
-export async function getManual(id: number): Promise<Manual> {
-  return apiFetch<Manual>(`/api/manuals/${id}/`);
+export async function getManual(slug: string): Promise<Manual> {
+  return apiFetch<Manual>(`/api/manuals/${slug}/`);
 }
 
-export async function updateManual(id: number, payload: Partial<Manual>): Promise<Manual> {
+export async function updateManual(slug: string, payload: Partial<Manual>): Promise<Manual> {
   await ensureCsrf();
-  return apiFetch<Manual>(`/api/manuals/${id}/`, { method: 'PATCH', body: JSON.stringify(payload) });
+  return apiFetch<Manual>(`/api/manuals/${slug}/`, { method: 'PATCH', body: JSON.stringify(payload) });
 }
 
-export async function deleteManual(id: number): Promise<void> {
+export async function deleteManual(slug: string): Promise<void> {
   await ensureCsrf();
-  return apiFetch<void>(`/api/manuals/${id}/`, { method: 'DELETE' });
+  return apiFetch<void>(`/api/manuals/${slug}/`, { method: 'DELETE' });
 }
 
 // Manual Actions
-export async function submitManualForReview(id: number): Promise<any> {
+export async function submitManualForReview(slug: string): Promise<any> {
   await ensureCsrf();
-  return apiFetch(`/api/manuals/${id}/submit/`, { method: 'POST' });
+  return apiFetch(`/api/manuals/${slug}/submit/`, { method: 'POST' });
 }
 
-export async function publishManual(id: number): Promise<Manual> {
-  await ensureCsrf();
-  return apiFetch<Manual>(`/api/manuals/${id}/publish/`, { method: 'POST' });
-}
 
-export async function rollbackManual(id: number, versionNumber: number): Promise<Manual> {
+export async function rollbackManual(slug: string, versionNumber: number): Promise<Manual> {
   await ensureCsrf();
-  return apiFetch<Manual>(`/api/manuals/${id}/rollback/`, { 
+  return apiFetch<Manual>(`/api/manuals/${slug}/rollback/`, { 
     method: 'POST', 
     body: JSON.stringify({ version_number: versionNumber }) 
   });
+}
+
+// Collaboration
+export async function addCollaborator(manualSlug: string, userId: number, role: CollaboratorRole = 'EDITOR'): Promise<ManualCollaborator> {
+  await ensureCsrf();
+  return apiFetch<ManualCollaborator>(`/api/manuals/${manualSlug}/add-collaborator/`, {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId, role })
+  });
+}
+
+export async function removeCollaborator(manualSlug: string, collaboratorId: number): Promise<void> {
+  await ensureCsrf();
+  return apiFetch<void>(`/api/manuals/${manualSlug}/remove-collaborator/${collaboratorId}/`, {
+    method: 'DELETE'
+  });
+}
+
+export async function listCollaborators(manualSlug: string): Promise<ManualCollaborator[]> {
+  return apiFetch<ManualCollaborator[]>(`/api/manuals/${manualSlug}/collaborators/`);
 }
 
 // Categories
@@ -268,6 +306,7 @@ export type ManualVersion = {
   content: string;
   is_published: boolean;
   published_html: string;
+  blocks?: ContentBlock[]; // Optional because not all endpoints include blocks
   created_at: string;
   updated_at: string;
   created_by: number;
@@ -335,8 +374,16 @@ export type ReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 export type ReviewRequest = {
   id: number;
   version: number;
+  manual_id: number;
+  manual_title: string;
+  manual_department: string;
+  version_number: number;
   submitted_by: number;
+  submitted_by_name: string;
+  submitted_by_username: string;
   reviewer: number | null;
+  reviewer_name: string | null;
+  reviewer_username: string | null;
   status: ReviewStatus;
   feedback: string;
   submitted_at: string;
@@ -362,6 +409,10 @@ export async function rejectReview(id: number, feedback?: string): Promise<Revie
     method: 'POST', 
     body: JSON.stringify({ feedback: feedback || '' }) 
   });
+}
+
+export async function getReviewContent(id: number): Promise<ManualVersion> {
+  return apiFetch<ManualVersion>(`/api/reviews/${id}/content/`);
 }
 
 // Audit Logs
@@ -417,8 +468,10 @@ export const api = {
     update: updateManual,
     delete: deleteManual,
     submit: submitManualForReview,
-    publish: publishManual,
     rollback: rollbackManual,
+    addCollaborator: addCollaborator,
+    removeCollaborator: removeCollaborator,
+    listCollaborators: listCollaborators,
   },
 
   // Categories
@@ -459,6 +512,7 @@ export const api = {
     get: getReview,
     approve: approveReview,
     reject: rejectReview,
+    getContent: getReviewContent,
   },
 
   // Audit Logs

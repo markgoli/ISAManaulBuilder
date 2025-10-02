@@ -17,7 +17,7 @@ const navSections = [
     title: "WORKFLOW",
     items: [
       { href: "/reviews", label: "Reviews", icon: "👁️" },
-      { href: "/approvals", label: "Approvals", icon: "✅" },
+      // { href: "/approvals", label: "Approvals", icon: "✅" },
       // { href: "/versions", label: "Version Control", icon: "🔄" },
       // { href: "/audit", label: "Audit Logs", icon: "📋" },
     ]

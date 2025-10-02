@@ -59,9 +59,10 @@ export default function DashboardPage() {
   const stats = useMemo(() => {
     const total = items.length;
     const drafts = items.filter(m => m.status === 'DRAFT').length;
-    const published = items.filter(m => m.status === 'PUBLISHED').length;
+    // const published = items.filter(m => m.status === 'PUBLISHED').length;
     const pending = items.filter(m => m.status === 'SUBMITTED').length;
-    return { total, drafts, published, pending };
+    const approved = items.filter(m => m.status === 'APPROVED').length;
+    return { total, drafts, pending, approved };
   }, [items]);
 
   // Filtered items based on search and filters
@@ -90,9 +91,9 @@ export default function DashboardPage() {
         return 'gray';
       case 'SUBMITTED':
         return 'yellow';
+      // case 'APPROVED':
+      //   return 'blue';
       case 'APPROVED':
-        return 'blue';
-      case 'PUBLISHED':
         return 'green';
       case 'REJECTED':
         return 'red';
@@ -162,8 +163,8 @@ export default function DashboardPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Published</p>
-                <p className="text-2xl font-bold text-green-600">{stats.published}</p>
+                <p className="text-sm font-medium text-gray-600">Approved</p>
+                <p className="text-2xl font-bold text-green-600">{stats.approved}</p>
               </div>
               <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
                 <span className="text-green-600 text-xl">✅</span>
@@ -227,7 +228,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {items.slice(0, 5).map((manual) => (
+              {items.slice(0, 3).map((manual) => (
                 <div key={manual.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex-1">
                     <h4 className="font-medium text-blue-700">{manual.title}</h4>
@@ -281,20 +282,20 @@ export default function DashboardPage() {
                   <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                     <span className="text-green-600 text-sm">✅</span>
                   </div>
-                  <span className="text-gray-700">Published</span>
+                  <span className="text-gray-700">Approved</span>
                 </div>
-                <span className="font-semibold text-gray-900">{stats.published}</span>
+                <span className="font-semibold text-gray-900">{stats.approved}</span>
               </div>
 
               <div className="pt-4 border-t">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-700 font-medium">Total Progress</span>
-                  <span className="text-gray-900 font-semibold">{Math.round((stats.published / Math.max(stats.total, 1)) * 100)}%</span>
+                  <span className="text-gray-900 font-semibold">{Math.round((stats.approved / Math.max(stats.total, 1)) * 100)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                   <div 
                     className="bg-blue-600 h-2 rounded-full transition-all" 
-                    style={{ width: `${(stats.published / Math.max(stats.total, 1)) * 100}%` }}
+                    style={{ width: `${(stats.approved / Math.max(stats.total, 1)) * 100}%` }}
                   ></div>
                 </div>
               </div>

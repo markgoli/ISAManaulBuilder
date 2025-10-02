@@ -10,6 +10,7 @@ from .views import (
     CSRFView,
     UserManagementViewSet,
     FirstLoginView,
+    extend_session,
 )
 
 router = DefaultRouter()
@@ -25,6 +26,7 @@ urlpatterns = [
     path('profile/', ProfileView.as_view(), name='auth-profile'),
     path('password/change/', ChangePasswordView.as_view(), name='auth-password-change'),
     path('first-login/', FirstLoginView.as_view(), name='auth-first-login'),
+    path('extend-session/', extend_session, name='auth-extend-session'),
     path('', include(router.urls)),
 ]
 

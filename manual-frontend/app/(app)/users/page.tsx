@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useToast } from "../../components/ui/Toast";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import Badge from "../../components/ui/Badge";
@@ -20,6 +21,7 @@ import {
 } from "../../../lib/api";
 
 export default function UsersPage() {
+  const { showSuccess, showError } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateUser, setShowCreateUser] = useState(false);
@@ -129,7 +131,7 @@ export default function UsersPage() {
       await resetUserPassword(userId);
       await loadUsers(); // Reload users
       setError(null);
-      alert("Password reset successfully. User will be prompted to change password on next login.");
+      showSuccess("Password Reset", "Password reset successfully. User will be prompted to change password on next login.");
     } catch (err: any) {
       setError(err.message || "Failed to reset password");
     } finally {

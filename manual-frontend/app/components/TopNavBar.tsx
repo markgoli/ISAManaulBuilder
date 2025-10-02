@@ -8,6 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Manual, listManuals } from "../../lib/api";
 import Badge from "./ui/Badge";
+import { SessionStatusIndicator } from "./SessionTimeoutNotification";
 
 
 // Breadcrumb configuration for different routes
@@ -190,9 +191,9 @@ export default function TopNavBar() {
     <header className="h-16 my-blue-bg border-b border-slate-200 flex items-center justify-between px-6">
       {/* Left side - Menu and Breadcrumb */}
       <div className="flex items-center space-x-4">
-        <button className="p-2 hover:bg-slate-100 rounded">
+        {/* <button className="p-2 hover:bg-slate-100 rounded">
           <span className="text-white">☰</span>
-        </button>
+        </button> */}
         <div className="flex items-center space-x-2 text-sm">
           {breadcrumbs.map((breadcrumb, index) => (
             <div key={`${breadcrumb.path}-${index}`} className="flex items-center space-x-2">
@@ -324,6 +325,9 @@ export default function TopNavBar() {
 
       {/* Right side - Controls */}
       <div className="flex items-center space-x-3">
+        {/* Session Status */}
+        {/* <SessionStatusIndicator /> */}
+        
         {/* User Profile */}
         <div className="flex items-center space-x-3">
           {user && (

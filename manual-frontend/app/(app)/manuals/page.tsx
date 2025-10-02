@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import { useSearchParams } from "next/navigation";
-import { api, listManuals, createManual, Manual } from "../../../lib/api";
+import { api, listManuals, createManual, submitManualForReview, deleteManual, Manual } from "../../../lib/api";
+import { useToast } from "../../components/ui/Toast";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import Badge from "../../components/ui/Badge";
@@ -14,10 +15,14 @@ import Select from "../../components/ui/Select";
 
 export default function ManualsPage() {
   const { user } = useAuth();
+  const { showSuccess, showError } = useToast();
   const searchParams = useSearchParams();
   const [manuals, setManuals] = useState<Manual[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null);
   
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
@@ -56,6 +61,41 @@ export default function ManualsPage() {
       console.error("Error loading manuals:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSubmitForReview = async (manualSlug: string) => {
+    try {
+      setSubmittingId(manualSlug);
+      await submitManualForReview(manualSlug);
+      // Refresh the manuals list to show updated status
+      await fetchManuals();
+      showSuccess("Manual Submitted", "Manual has been successfully submitted for review.");
+    } catch (err) {
+      console.error("Failed to submit manual for review:", err);
+      showError("Submission Failed", "Failed to submit manual for review. Please try again.");
+    } finally {
+      setSubmittingId(null);
+    }
+  };
+
+  const handleDeleteConfirm = (manual: Manual) => {
+    setDeleteConfirm({ id: manual.slug, title: manual.title });
+  };
+
+  const handleDeleteManual = async (manualSlug: string) => {
+    try {
+      setDeletingId(manualSlug);
+      await deleteManual(manualSlug);
+      // Refresh the manuals list
+      await fetchManuals();
+      setDeleteConfirm(null);
+      showSuccess("Manual Deleted", "Manual has been successfully deleted.");
+    } catch (err) {
+      console.error("Failed to delete manual:", err);
+      showError("Deletion Failed", "Failed to delete manual. Please try again.");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -104,7 +144,6 @@ export default function ManualsPage() {
       case 'DRAFT': return 'gray';
       case 'SUBMITTED': return 'blue';
       case 'APPROVED': return 'green';
-      case 'PUBLISHED': return 'green';
       case 'REJECTED': return 'red';
       default: return 'gray';
     }
@@ -127,7 +166,9 @@ export default function ManualsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-blue-700">Manuals</h1>
-          <p className="text-gray-600 mt-1">Manage your documentation & manuals</p>
+          <p className="text-gray-600 mt-1">
+            Showing approved manuals, your own manuals, and collaborative manuals
+          </p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
@@ -164,7 +205,6 @@ export default function ManualsPage() {
               <option value="DRAFT">Draft</option>
               <option value="SUBMITTED">Submitted</option>
               <option value="APPROVED">Approved</option>
-              <option value="PUBLISHED">Published</option>
               <option value="REJECTED">Rejected</option>
             </Select>
             <Select
@@ -232,7 +272,7 @@ export default function ManualsPage() {
                 </Badge>
               </div>
               <p className="text-sm text-slate-500 font-medium">
-                Manual #{manual.id} • {manual.department || 'General'}
+                Manual #{manual.reference} • {manual.department || 'General'}
               </p>
             </CardHeader>
             
@@ -251,13 +291,54 @@ export default function ManualsPage() {
                     {new Date(manual.updated_at).toLocaleDateString()}
                   </span>
                 </div>
+                
+                {/* Collaboration Status */}
+                {manual.collaborators && manual.collaborators.length > 0 && (
+                  <div className="flex items-center justify-between py-2 border-t border-slate-100">
+                    <span className="text-sm text-slate-600 font-medium">Collaborators:</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm text-slate-700 font-semibold">
+                        {manual.collaborators.length}
+                      </span>
+                      <div className="flex -space-x-1">
+                        {manual.collaborators.slice(0, 3).map((collab, index) => (
+                          <div
+                            key={collab.id}
+                            className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center border-2 border-white text-xs font-medium text-blue-600"
+                            title={`${collab.user_first_name} ${collab.user_last_name} (${collab.role})`}
+                          >
+                            {collab.user_first_name.charAt(0)}{collab.user_last_name.charAt(0)}
+                          </div>
+                        ))}
+                        {manual.collaborators.length > 3 && (
+                          <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center border-2 border-white text-xs font-medium text-slate-600">
+                            +{manual.collaborators.length - 3}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* User's Role Indicator */}
+                {user && manual.collaborators && manual.collaborators.some(collab => collab.user_id === user.id) && (
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm text-slate-600 font-medium">Your Role:</span>
+                    <Badge 
+                      color={manual.collaborators.find(collab => collab.user_id === user.id)?.role === 'EDITOR' ? 'blue' : 'gray'} 
+                      size="sm"
+                    >
+                      {manual.collaborators.find(collab => collab.user_id === user.id)?.role}
+                    </Badge>
+                  </div>
+                )}
               </div>
 
               {/* Clean Icon-Only Action Buttons */}
               <div className="flex gap-2 justify-end">
                 {/* View Button */}
                 <button
-                  onClick={() => window.location.href = `/manuals/${manual.id}`}
+                  onClick={() => window.location.href = `/manuals/${manual.slug}`}
                   title="View Manual"
                   className="p-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200 shadow-sm hover:shadow-md"
                 >
@@ -267,9 +348,9 @@ export default function ManualsPage() {
                   </svg>
                 </button>
                 
-                {user && (manual.created_by === user.id || user.role === 'ADMIN' || user.role === 'MANAGER') && (
+                {user && (manual.created_by === user.id || user.role === 'ADMIN' || user.role === 'MANAGER' || manual.can_edit) && (
                   <button
-                    onClick={() => window.location.href = `/manuals/${manual.id}/edit`}
+                    onClick={() => window.location.href = `/manuals/${manual.slug}/edit`}
                     title="Edit Manual"
                     className="p-2.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors duration-200 shadow-sm hover:shadow-md"
                   >
@@ -281,11 +362,37 @@ export default function ManualsPage() {
                 
                 {manual.status === 'DRAFT' && user && manual.created_by === user.id && (
                   <button
-                    title="Submit for Review"
-                    className="p-2.5 rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-colors duration-200 shadow-sm hover:shadow-md"
+                    onClick={() => handleSubmitForReview(manual.slug)}
+                    disabled={submittingId === manual.slug}
+                    title={submittingId === manual.slug ? "Submitting..." : "Submit for Review"}
+                    className={`p-2.5 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md ${
+                      submittingId === manual.slug 
+                        ? 'bg-orange-400 cursor-not-allowed' 
+                        : 'bg-orange-600 text-white hover:bg-orange-700'
+                    }`}
+                  >
+                    {submittingId === manual.slug ? (
+                      <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    ) : (
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                      </svg>
+                    )}
+                  </button>
+                )}
+
+                {/* Delete Button - Only for manual creators on DRAFT or REJECTED manuals */}
+                {user && manual.created_by === user.id && (manual.status === 'DRAFT' || manual.status === 'REJECTED') && (
+                  <button
+                    onClick={() => handleDeleteConfirm(manual)}
+                    title="Delete Manual"
+                    className="p-2.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors duration-200 shadow-sm hover:shadow-md"
                   >
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                   </button>
                 )}
@@ -338,7 +445,7 @@ export default function ManualsPage() {
                   Description
                 </label>
                 <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-gray-700"
                   rows={3}
                   value={newManual.description}
                   onChange={(e) => setNewManual({ ...newManual, description: e.target.value })}
@@ -360,7 +467,7 @@ export default function ManualsPage() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium"
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200 font-medium"
                 >
                   Cancel
                 </button>
@@ -374,6 +481,64 @@ export default function ManualsPage() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md shadow-2xl border-red-200">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <CardTitle className="text-xl text-red-700">Delete Manual</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <div className="space-y-2">
+                <p className="text-gray-600">
+                  Are you sure you want to delete this manual?
+                </p>
+                <div className="bg-red-50 rounded-lg p-3">
+                  <p className="font-medium text-red-800">
+                    {deleteConfirm.title}
+                  </p>
+                  <p className="text-sm text-red-600 mt-1">
+                    This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={() => setDeleteConfirm(null)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => handleDeleteManual(deleteConfirm.id)}
+                  disabled={deletingId === deleteConfirm.id}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                >
+                  {deletingId === deleteConfirm.id ? (
+                    <>
+                      <svg className="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete Manual'
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 

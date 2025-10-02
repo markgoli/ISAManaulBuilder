@@ -19,20 +19,20 @@ export default function ManualViewPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (params.id) {
+    if (params.slug) {
       loadManual();
     }
-  }, [params.id]);
+  }, [params.slug]);
 
   const loadManual = async () => {
     try {
       setLoading(true);
-      const manualId = parseInt(params.id as string);
+      const manualSlug = params.slug as string;
       
-      console.log("Attempting to load manual with ID:", manualId);
+      console.log("Attempting to load manual with slug:", manualSlug);
       
       // Load manual data
-      const manualData = await getManual(manualId);
+      const manualData = await getManual(manualSlug);
       console.log("Manual data loaded:", manualData);
       setManual(manualData);
 
@@ -55,8 +55,8 @@ export default function ManualViewPage() {
       console.error("Error loading manual:", err);
       console.error("Error details:", {
         message: err.message,
-        manualId: parseInt(params.id as string),
-        url: `/api/manuals/${parseInt(params.id as string)}/`
+        manualSlug: params.slug as string,
+        url: `/api/manuals/${params.slug as string}/`
       });
       setError(err.message || "Failed to load manual");
     } finally {
@@ -65,7 +65,7 @@ export default function ManualViewPage() {
   };
 
   const handleEdit = () => {
-    router.push(`/manuals/${params.id}/edit`);
+    router.push(`/manuals/${params.slug}/edit`);
   };
 
   const handleBack = () => {
@@ -90,8 +90,8 @@ export default function ManualViewPage() {
           <div className="text-4xl text-red-500 mb-4">⚠️</div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Manual Not Found</h2>
           <p className="text-gray-600 mb-4">{error || "The requested manual could not be found."}</p>
-          <Button onClick={handleBack} className="bg-blue-600 hover:bg-blue-700 text-white">
-            ← Back to Manuals
+          <Button onClick={handleBack} className="bg-blue-600 hover:bg-blue-700 text-white hover:text-white">
+            ← Back
           </Button>
         </div>
       </div>
@@ -105,9 +105,9 @@ export default function ManualViewPage() {
         <div className="w-full mx-auto flex items-center justify-between">
           <Button
             onClick={handleBack}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700"
+            className="bg-blue-100 hover:bg-blue-200 text-blue-700"
           >
-            ← Back to Manuals
+            ← Back
           </Button>
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <span>Manual ID: {manual.id}</span>

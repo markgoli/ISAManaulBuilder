@@ -22,6 +22,7 @@ import Input from "../../../../components/ui/Input";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../../components/ui/Card";
 import BlockSelector from "../../../../components/manual-builder/BlockSelector";
 import DragDropContainer from "../../../../components/manual-builder/DragDropContainer";
+import CollaboratorManager from "../../../../components/manual-builder/CollaboratorManager";
 import { ContentBlockData } from "../../../../components/manual-builder/ContentBlock";
 
 export default function EditManualPage() {
@@ -41,18 +42,18 @@ export default function EditManualPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (params.id) {
+    if (params.slug) {
       loadManual();
     }
-  }, [params.id]);
+  }, [params.slug]);
 
   const loadManual = async () => {
     try {
       setLoading(true);
-      const manualId = parseInt(params.id as string);
+      const manualSlug = params.slug as string;
       
       // Load manual data
-      const manualData = await getManual(manualId);
+      const manualData = await getManual(manualSlug);
       setManual(manualData);
       setManualData({
         title: manualData.title,
@@ -149,7 +150,7 @@ export default function EditManualPage() {
       setError(null);
 
       // Update manual basic info
-      const updatedManual = await updateManual(manual.id, {
+      const updatedManual = await updateManual(manual.slug, {
         title: manualData.title,
         department: manualData.department,
       });
@@ -176,7 +177,7 @@ export default function EditManualPage() {
       }
 
       // Redirect to manual view
-      router.push(`/manuals/${manual.id}`);
+      router.push(`/manuals/${manual.slug}`);
     } catch (err: any) {
       setError(err.message || "Failed to save manual");
       console.error(err);
@@ -186,14 +187,15 @@ export default function EditManualPage() {
   };
 
   const handleCancel = () => {
-    router.push(`/manuals/${params.id}`);
+    router.push(`/manuals/${params.slug}`);
   };
 
   // Check if user can edit this manual
   const canEdit = user && manual && (
     manual.created_by === user.id || 
     user.role === 'ADMIN' || 
-    user.role === 'MANAGER'
+    user.role === 'MANAGER' ||
+    manual.can_edit === true
   );
 
   if (loading) {
@@ -229,7 +231,7 @@ export default function EditManualPage() {
           <div className="text-4xl text-yellow-500 mb-4">🔒</div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
           <p className="text-gray-600 mb-4">You don't have permission to edit this manual.</p>
-          <Button onClick={() => router.push(`/manuals/${params.id}`)} className="bg-blue-600 hover:bg-blue-700 text-white">
+          <Button onClick={() => router.push(`/manuals/${params.slug}`)} className="bg-blue-600 hover:bg-blue-700 text-white">
             ← Back to Manual
           </Button>
         </div>
@@ -331,6 +333,17 @@ export default function EditManualPage() {
                 />
               </CardContent>
             </Card>
+
+            {/* Collaborator Management - Only for manual creator */}
+            {manual && user && manual.created_by === user.id && (
+              <CollaboratorManager 
+                manual={manual} 
+                onUpdate={() => {
+                  // Refresh manual data to get updated collaborators
+                  loadManual();
+                }}
+              />
+            )}
           </div>
         </div>
 

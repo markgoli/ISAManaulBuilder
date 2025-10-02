@@ -50,9 +50,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'accounts.middleware.SessionTimeoutMiddleware',  # Custom session timeout middleware
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
 ]
 
 
@@ -78,6 +78,13 @@ REST_FRAMEWORK = {
 CORS_ALLOW_CREDENTIALS = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Session Timeout Settings
+SESSION_COOKIE_AGE = 1800  # 30 minutes in seconds
+SESSION_SAVE_EVERY_REQUEST = True  # Extend session on every request
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Session expires when browser closes
+SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
 
 ROOT_URLCONF = 'manual_backend.urls'
 

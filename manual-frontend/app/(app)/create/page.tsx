@@ -152,7 +152,7 @@ export default function CreateManualPage() {
       });
 
       // Get the manual with its current version (auto-created by backend)
-      const fullManual = await getManual(manual.id);
+      const fullManual = await getManual(manual.slug);
       
       if (fullManual.current_version) {
         // Create content blocks for the existing version
@@ -169,8 +169,8 @@ export default function CreateManualPage() {
         }
       }
 
-      // Redirect to manual view
-      router.push(`/manuals/${manual.id}`);
+      // Redirect to manual view using slug
+      router.push(`/manuals/${manual.slug}`);
     } catch (err: any) {
       setError(err.message || "Failed to save manual");
       console.error(err);
@@ -212,13 +212,13 @@ export default function CreateManualPage() {
           >
             💾 Save Draft
           </Button>
-          <Button 
+          {/* <Button 
             onClick={handleSubmitForReview}
             loading={saving}
             className="bg-green-600 hover:bg-green-700 text-white"
           >
             📤 Submit for Review
-          </Button>
+          </Button> */}
         </div>
       </div>
 

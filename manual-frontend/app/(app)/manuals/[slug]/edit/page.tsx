@@ -70,7 +70,7 @@ export default function EditManualPage() {
           .sort((a, b) => a.order - b.order)
           .map(block => ({
             id: block.id.toString(),
-            type: block.type,
+            type: (block.data?.originalType || block.type) as ContentBlockType,
             content: block.data,
             order: block.order,
           }));
@@ -93,13 +93,13 @@ export default function EditManualPage() {
     const typeMapping: Record<ContentBlockType, string> = {
       'TEXT': 'TEXT',
       'IMAGE': 'IMAGE', 
-      'VIDEO': 'TEXT', // Store as TEXT with video data
+      'VIDEO': 'VIDEO',
       'TABLE': 'TABLE',
-      'LIST': 'CHECKLIST', // Map LIST to CHECKLIST
-      'CODE': 'TEXT', // Store as TEXT with code data
-      'QUOTE': 'TEXT', // Store as TEXT with quote data
-      'DIVIDER': 'TEXT', // Store as TEXT with divider marker
-      'CHECKLIST': 'CHECKLIST',
+      'LIST': 'LIST',
+      'CODE': 'CODE',
+      'QUOTE': 'QUOTE',
+      'DIVIDER': 'DIVIDER',
+      'CHECKLIST': 'LIST',
       'DIAGRAM': 'DIAGRAM',
       'TABS': 'TABS'
     };

@@ -131,6 +131,7 @@ class ReviewRequestSerializer(serializers.ModelSerializer):
     # Nested serializers for related data
     manual_title = serializers.CharField(source='version.manual.title', read_only=True)
     manual_id = serializers.IntegerField(source='version.manual.id', read_only=True)
+    manual_reference = serializers.CharField(source='version.manual.reference', read_only=True)
     manual_department = serializers.CharField(source='version.manual.department', read_only=True)
     version_number = serializers.IntegerField(source='version.version_number', read_only=True)
     
@@ -146,6 +147,7 @@ class ReviewRequestSerializer(serializers.ModelSerializer):
             "id",
             "version",
             "manual_id",
+            "manual_reference",
             "manual_title",
             "manual_department",
             "version_number",

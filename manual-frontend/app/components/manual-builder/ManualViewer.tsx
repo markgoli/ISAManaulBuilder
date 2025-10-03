@@ -21,8 +21,32 @@ export default function ManualViewer({ manual, version, contentBlocks, onEdit }:
     user.role === 'REVIEWER'
   );
 
+  const convertToEmbedUrl = (url: string): string => {
+    if (!url) return url;
+    
+    // YouTube URL conversion
+    const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/;
+    const youtubeMatch = url.match(youtubeRegex);
+    if (youtubeMatch) {
+      return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+    }
+    
+    // Vimeo URL conversion
+    const vimeoRegex = /(?:vimeo\.com\/)([0-9]+)/;
+    const vimeoMatch = url.match(vimeoRegex);
+    if (vimeoMatch) {
+      return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+    }
+    
+    // Return original URL if no conversion needed
+    return url;
+  };
+
   const renderContentBlock = (block: ContentBlock) => {
-    switch (block.type) {
+    // Use originalType if available, otherwise use the block type
+    const blockType = block.data?.originalType || block.type;
+    
+    switch (blockType) {
       case 'TEXT':
         return (
           <div className="space-y-2">
@@ -97,8 +121,8 @@ export default function ManualViewer({ manual, version, contentBlocks, onEdit }:
             {block.data?.items?.length > 0 && (
               <div className="space-y-2">
                 {block.data.items.map((item: string, index: number) => (
-                  <div key={index} className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
-                    <input type="checkbox" className="rounded text-blue-600 focus:ring-blue-500" readOnly />
+                  <div key={index} className="flex items-center space-x-2">
+                    <input type="checkbox" className="rounded" readOnly />
                     <span className="text-gray-700">{item}</span>
                   </div>
                 ))}
@@ -181,7 +205,7 @@ export default function ManualViewer({ manual, version, contentBlocks, onEdit }:
             {block.data?.url && (
               <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
                 <iframe
-                  src={block.data.url}
+                  src={convertToEmbedUrl(block.data.url)}
                   title={block.data.title || 'Video'}
                   className="w-full h-full"
                   frameBorder="0"

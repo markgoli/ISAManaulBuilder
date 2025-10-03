@@ -272,7 +272,7 @@ export default function ReviewsPage() {
                             {review.manual_title}
                           </div>
                           <div className="text-xs text-gray-500">
-                            Manual #{review.manual_id}
+                            Manual #{review.manual_reference}
                           </div>
                         </div>
                       </td>
@@ -323,7 +323,7 @@ export default function ReviewsPage() {
       {/* Review Modal */}
       {selectedReview && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-blue-700">Review Manual</h2>
               <button 
@@ -454,7 +454,7 @@ export default function ReviewsPage() {
                   <textarea
                     value={feedback}
                     onChange={(e) => setFeedback(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm"
                     rows={4}
                     placeholder={reviewAction === 'reject' ? "Please provide feedback for rejection..." : "Add your review comments here..."}
                   />

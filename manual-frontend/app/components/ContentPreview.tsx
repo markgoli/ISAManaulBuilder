@@ -9,96 +9,162 @@ interface ContentPreviewProps {
 }
 
 const ContentPreview: React.FC<ContentPreviewProps> = ({ blocks, className = '' }) => {
+  const convertToEmbedUrl = (url: string): string => {
+    if (!url) return url;
+    
+    // YouTube URL conversion
+    const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/;
+    const youtubeMatch = url.match(youtubeRegex);
+    if (youtubeMatch) {
+      return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+    }
+    
+    // Vimeo URL conversion
+    const vimeoRegex = /(?:vimeo\.com\/)([0-9]+)/;
+    const vimeoMatch = url.match(vimeoRegex);
+    if (vimeoMatch) {
+      return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+    }
+    
+    // Return original URL if no conversion needed
+    return url;
+  };
+
   const renderContentBlock = (block: ContentBlock) => {
-    switch (block.type) {
+    // Use originalType if available, otherwise use the block type
+    const blockType = block.data?.originalType || block.type;
+    
+    switch (blockType) {
       case 'TEXT':
         return (
-          <div className="prose prose-sm max-w-none">
-            <div dangerouslySetInnerHTML={{ __html: block.data.content || '' }} />
+          <div className="space-y-2">
+            {block.data?.title && (
+              <h3 className="text-xl font-semibold text-gray-900">{block.data.title}</h3>
+            )}
+            {block.data?.text && (
+              <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{block.data.text}</p>
+            )}
           </div>
         );
 
       case 'IMAGE':
         return (
-          <div className="text-center">
-            {block.data.url ? (
-              <img 
-                src={block.data.url} 
-                alt={block.data.alt || 'Image'} 
-                className="max-w-full h-auto rounded-lg shadow-sm"
-              />
-            ) : (
-              <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-8">
-                <div className="text-gray-400 text-center">
-                  <div className="text-2xl mb-2">🖼️</div>
-                  <p>Image: {block.data.alt || 'No description'}</p>
-                </div>
+          <div className="space-y-2">
+            {block.data?.src && (
+              <div className="text-center">
+                <img
+                  src={block.data.src}
+                  alt={block.data.alt || 'Manual image'}
+                  className="max-w-full h-auto rounded-lg shadow-sm mx-auto"
+                />
+                {block.data?.caption && (
+                  <p className="text-sm text-gray-600 mt-2 italic">{block.data.caption}</p>
+                )}
               </div>
-            )}
-            {block.data.caption && (
-              <p className="text-sm text-gray-600 mt-2 italic">{block.data.caption}</p>
             )}
           </div>
         );
 
       case 'TABLE':
         return (
-          <div className="overflow-x-auto">
-            <table className="min-w-full border border-gray-300">
-              <thead className="bg-gray-50">
-                <tr>
-                  {block.data.headers?.map((header: string, index: number) => (
-                    <th key={index} className="px-4 py-2 border border-gray-300 text-left font-medium">
-                      {header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {block.data.rows?.map((row: string[], rowIndex: number) => (
-                  <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                    {row.map((cell, cellIndex) => (
-                      <td key={cellIndex} className="px-4 py-2 border border-gray-300">
-                        {cell}
-                      </td>
+          <div className="space-y-2">
+            {block.data?.title && (
+              <h3 className="text-lg font-medium text-gray-900">{block.data.title}</h3>
+            )}
+            {block.data?.csvData && (
+              <div className="overflow-x-auto">
+                <table className="min-w-full border border-gray-300 rounded-lg">
+                  <tbody>
+                    {block.data.csvData.split('\n').map((row: string, rowIndex: number) => (
+                      <tr key={rowIndex} className={rowIndex === 0 ? 'bg-gray-50' : 'hover:bg-gray-50'}>
+                        {row.split(',').map((cell: string, cellIndex: number) => (
+                          rowIndex === 0 ? (
+                            <th key={cellIndex} className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-900">
+                              {cell.trim()}
+                            </th>
+                          ) : (
+                            <td key={cellIndex} className="border border-gray-300 px-4 py-3 text-gray-700">
+                              {cell.trim()}
+                            </td>
+                          )
+                        ))}
+                      </tr>
                     ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         );
 
       case 'LIST':
+        return (
+          <div className="space-y-2">
+            {block.data?.title && (
+              <h3 className="text-lg font-medium text-gray-900">{block.data.title}</h3>
+            )}
+            {block.data?.items?.length > 0 && (
+              <div className="ml-4">
+                {block.data.listType === 'numbered' ? (
+                  <ol className="list-decimal list-inside space-y-1">
+                    {block.data.items.map((item: string, index: number) => (
+                      <li key={index} className="text-gray-700">{item}</li>
+                    ))}
+                  </ol>
+                ) : block.data.listType === 'checklist' ? (
+                  <div className="space-y-2">
+                    {block.data.items.map((item: string, index: number) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <input type="checkbox" className="rounded" readOnly />
+                        <span className="text-gray-700">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <ul className="list-disc list-inside space-y-1">
+                    {block.data.items.map((item: string, index: number) => (
+                      <li key={index} className="text-gray-700">{item}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
+        );
+
       case 'CHECKLIST':
         return (
-          <div>
-            {block.data.items?.filter((item: string) => item.trim()).length > 0 ? (
-              <ul className={`space-y-1 ${block.type === 'CHECKLIST' ? 'list-none' : 'list-disc list-inside'}`}>
-                {block.data.items.filter((item: string) => item.trim()).map((item: string, index: number) => (
-                  <li key={index} className="flex items-start">
-                    {block.type === 'CHECKLIST' && (
-                      <span className="mr-2 text-green-600">✓</span>
-                    )}
-                    <span>{item}</span>
-                  </li>
+          <div className="space-y-2">
+            {block.data?.title && (
+              <h3 className="text-lg font-medium text-gray-900">{block.data.title}</h3>
+            )}
+            {block.data?.items?.length > 0 && (
+              <div className="space-y-2">
+                {block.data.items.map((item: string, index: number) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <input type="checkbox" className="rounded" readOnly />
+                    <span className="text-gray-700">{item}</span>
+                  </div>
                 ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500 italic">No items in this list</p>
+              </div>
             )}
           </div>
         );
 
       case 'CODE':
         return (
-          <div className="bg-gray-900 text-gray-100 rounded-lg p-4 overflow-x-auto">
-            <pre className="text-sm">
-              <code>{block.data.code || '// No code content'}</code>
-            </pre>
-            {block.data.language && (
-              <div className="text-xs text-gray-400 mt-2">
-                Language: {block.data.language}
+          <div className="space-y-2">
+            {block.data?.title && (
+              <h3 className="text-lg font-medium text-gray-900">{block.data.title}</h3>
+            )}
+            {block.data?.code && (
+              <div className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs text-gray-400">{block.data.language || 'Code'}</span>
+                </div>
+                <pre className="text-sm">
+                  <code>{block.data.code}</code>
+                </pre>
               </div>
             )}
           </div>
@@ -106,75 +172,83 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({ blocks, className = '' 
 
       case 'QUOTE':
         return (
-          <blockquote className="border-l-4 border-blue-500 pl-4 py-2 bg-blue-50 italic">
-            <p className="text-gray-700">{block.data.quote || 'No quote content'}</p>
-            {block.data.author && (
-              <footer className="text-sm text-gray-600 mt-2">
-                — {block.data.author}
-              </footer>
+          <div className="border-l-4 border-blue-500 pl-4 py-2 bg-blue-50 rounded-r-lg">
+            {block.data?.quote && (
+              <blockquote className="text-gray-700 italic text-lg">
+                "{block.data.quote}"
+              </blockquote>
             )}
-          </blockquote>
+            {block.data?.author && (
+              <cite className="text-gray-600 text-sm block mt-2">— {block.data.author}</cite>
+            )}
+          </div>
         );
 
       case 'DIVIDER':
-        return <hr className="border-gray-300 my-6" />;
+        return (
+          <div className="py-6">
+            <hr className="border-gray-300" />
+          </div>
+        );
 
       case 'VIDEO':
         return (
-          <div className="text-center">
-            {block.data.url ? (
-              <video 
-                controls 
-                className="max-w-full h-auto rounded-lg shadow-sm"
-                src={block.data.url}
-              >
-                Your browser does not support the video tag.
-              </video>
-            ) : (
-              <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-8">
-                <div className="text-gray-400 text-center">
-                  <div className="text-2xl mb-2">🎥</div>
-                  <p>Video: {block.data.title || 'No title'}</p>
-                </div>
+          <div className="space-y-2">
+            {block.data?.title && (
+              <h3 className="text-lg font-medium text-gray-900">{block.data.title}</h3>
+            )}
+            {block.data?.url && (
+              <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                <iframe
+                  src={convertToEmbedUrl(block.data.url)}
+                  title={block.data.title || 'Video'}
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allowFullScreen
+                />
               </div>
             )}
-            {block.data.caption && (
-              <p className="text-sm text-gray-600 mt-2 italic">{block.data.caption}</p>
+            {block.data?.description && (
+              <p className="text-sm text-gray-600 mt-2">{block.data.description}</p>
             )}
           </div>
         );
 
       case 'DIAGRAM':
         return (
-          <div className="text-center">
-            <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-8">
-              <div className="text-gray-400 text-center">
-                <div className="text-2xl mb-2">📊</div>
-                <p>Diagram: {block.data.title || 'No title'}</p>
-                {block.data.description && (
-                  <p className="text-sm mt-1">{block.data.description}</p>
-                )}
+          <div className="space-y-2">
+            {block.data?.title && (
+              <h3 className="text-lg font-medium text-gray-900">{block.data.title}</h3>
+            )}
+            {block.data?.data && (
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-dashed border-blue-200 rounded-lg p-6 text-center">
+                <div className="text-4xl text-blue-500 mb-2">📈</div>
+                <div className="text-sm text-blue-600 font-medium mb-2">{block.data.diagramType}</div>
+                <p className="text-gray-700 text-sm">{block.data.data}</p>
               </div>
-            </div>
+            )}
           </div>
         );
 
       case 'TABS':
         return (
-          <div className="border border-gray-300 rounded-lg">
-            <div className="bg-gray-50 px-4 py-2 border-b border-gray-300">
-              <div className="text-sm font-medium text-gray-700">
-                Tabs: {block.data.tabs?.map((tab: any) => tab.title).join(', ') || 'No tabs'}
-              </div>
-            </div>
-            <div className="p-4">
-              {block.data.tabs?.map((tab: any, index: number) => (
-                <div key={index} className="mb-4 last:mb-0">
-                  <h4 className="font-medium text-gray-900 mb-2">{tab.title}</h4>
-                  <div className="text-gray-700">{tab.content}</div>
+          <div className="space-y-2">
+            {block.data?.tabs?.length > 0 && (
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="flex border-b border-gray-200 bg-gray-50">
+                  {block.data.tabs.map((tab: any, index: number) => (
+                    <div key={index} className="px-4 py-2 text-sm font-medium text-gray-700 border-r border-gray-200 last:border-r-0">
+                      {tab.title || `Tab ${index + 1}`}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+                <div className="p-4">
+                  <p className="text-gray-700 text-sm">
+                    {block.data.tabs[0]?.content || 'No content'}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         );
 
@@ -202,12 +276,14 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({ blocks, className = '' 
   }
 
   return (
-    <div className={`space-y-6 ${className}`}>
-      {blocks.map((block, index) => (
-        <div key={block.id || index} className="content-block">
-          {renderContentBlock(block)}
-        </div>
-      ))}
+    <div className={`space-y-8 ${className}`}>
+      {blocks
+        .sort((a, b) => a.order - b.order)
+        .map((block, index) => (
+          <div key={block.id || index} className="content-block">
+            {renderContentBlock(block)}
+          </div>
+        ))}
     </div>
   );
 };

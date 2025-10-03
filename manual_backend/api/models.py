@@ -169,7 +169,12 @@ class ContentBlock(TimestampedModel):
     class BlockType(models.TextChoices):
         TEXT = "TEXT", "Text"
         IMAGE = "IMAGE", "Image"
+        VIDEO = "VIDEO", "Video"
         TABLE = "TABLE", "Table"
+        LIST = "LIST", "List"
+        CODE = "CODE", "Code"
+        QUOTE = "QUOTE", "Quote"
+        DIVIDER = "DIVIDER", "Divider"
         CHECKLIST = "CHECKLIST", "Checklist"
         DIAGRAM = "DIAGRAM", "Diagram"
         TABS = "TABS", "Tabs"

@@ -375,6 +375,7 @@ export type ReviewRequest = {
   id: number;
   version: number;
   manual_id: number;
+  manual_reference: string;
   manual_title: string;
   manual_department: string;
   version_number: number;

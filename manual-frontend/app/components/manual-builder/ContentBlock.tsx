@@ -52,6 +52,27 @@ export default function ContentBlock({
     }
   };
 
+  const convertToEmbedUrl = (url: string): string => {
+    if (!url) return url;
+    
+    // YouTube URL conversion
+    const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/;
+    const youtubeMatch = url.match(youtubeRegex);
+    if (youtubeMatch) {
+      return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+    }
+    
+    // Vimeo URL conversion
+    const vimeoRegex = /(?:vimeo\.com\/)([0-9]+)/;
+    const vimeoMatch = url.match(vimeoRegex);
+    if (vimeoMatch) {
+      return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+    }
+    
+    // Return original URL if no conversion needed
+    return url;
+  };
+
   const renderContent = () => {
     switch (block.type) {
       case 'TEXT':
@@ -140,7 +161,7 @@ export default function ContentBlock({
               onChange={handleImageUpload}
               className="hidden"
             />
-            {isEditing && block.content?.src && (
+            {isEditing && (
               <div className="space-y-2">
                 <input
                   type="text"
@@ -150,7 +171,7 @@ export default function ContentBlock({
                     alt: e.target.value,
                   })}
                   placeholder="Image description (alt text)..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm"
                 />
                 <input
                   type="text"
@@ -160,8 +181,22 @@ export default function ContentBlock({
                     caption: e.target.value,
                   })}
                   placeholder="Image caption..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm"
                 />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
             {block.content?.caption && (
@@ -415,7 +450,7 @@ export default function ContentBlock({
                   })}
                   placeholder="Enter your code here..."
                   rows={8}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm text-gray-600"
                 />
                 <button
                   onClick={() => setIsEditing(false)}
@@ -544,7 +579,7 @@ export default function ContentBlock({
                   <div className="space-y-2">
                     <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
                       <iframe
-                        src={block.content.url}
+                        src={convertToEmbedUrl(block.content.url)}
                         title={block.content.title || 'Video'}
                         className="w-full h-full"
                         frameBorder="0"

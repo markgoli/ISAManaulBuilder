@@ -127,52 +127,38 @@ export default function ContentBlock({
       case 'IMAGE':
         return (
           <div className="space-y-2">
-            {block.content?.src ? (
-              <div className="relative">
-                <img
-                  src={block.content.src}
-                  alt={block.content.alt || 'Uploaded image'}
-                  className="max-w-full h-auto rounded-lg"
-                />
-                {isEditing && (
-                  <div className="absolute top-2 right-2 space-x-2">
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      Replace
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400"
-              >
-                <div className="text-4xl text-gray-400 mb-2">🖼️</div>
-                <p className="text-gray-600">Click to upload an image</p>
-              </div>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-            {isEditing && (
+            {isEditing ? (
               <div className="space-y-2">
-                <input
-                  type="text"
-                  value={block.content?.alt || ''}
-                  onChange={(e) => handleContentChange({
-                    ...block.content,
-                    alt: e.target.value,
-                  })}
-                  placeholder="Image description (alt text)..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 text-sm"
-                />
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Image Upload
+                  </label>
+                  {block.content?.src ? (
+                    <div className="space-y-2">
+                      <div className="relative inline-block">
+                        <img
+                          src={block.content.src}
+                          alt={block.content.alt || 'Uploaded image'}
+                          className="max-w-full max-h-64 h-auto rounded-lg border border-gray-200"
+                        />
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="absolute top-2 right-2 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                        >
+                          Replace
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400"
+                    >
+                      <div className="text-4xl text-gray-400 mb-2">🖼️</div>
+                      <p className="text-gray-600">Click to upload an image</p>
+                    </div>
+                  )}
+                </div>
                 <input
                   type="text"
                   value={block.content?.caption || ''}
@@ -198,10 +184,34 @@ export default function ContentBlock({
                   </button>
                 </div>
               </div>
+            ) : (
+              <div onClick={() => setIsEditing(true)} className="cursor-pointer hover:bg-gray-50 p-2 rounded">
+                {block.content?.src ? (
+                  <div className="text-center">
+                    <img
+                      src={block.content.src}
+                      alt={block.content.alt || 'Uploaded image'}
+                      className="max-w-full h-auto rounded-lg mx-auto"
+                    />
+                    {block.content?.caption && (
+                      <p className="text-sm text-gray-600 mt-2 italic">{block.content.caption}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <div className="text-4xl text-gray-400 mb-2">🖼️</div>
+                    <p className="text-gray-500">Click to add an image</p>
+                  </div>
+                )}
+              </div>
             )}
-            {block.content?.caption && (
-              <p className="text-sm text-gray-600 text-center italic">{block.content.caption}</p>
-            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
           </div>
         );
 
